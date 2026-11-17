@@ -2,1341 +2,1029 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>期中考试查分系统</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>初二(18)班期中成绩查询</title>
+<!--[if lte IE 8]><script>alert('请使用IE8以上版本浏览器')</script><![endif]-->
 <style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    border-radius: 0 !important;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  body {
-    min-height: 100vh;
-    background: #ffffff;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 20px 10px 40px;
-    font-family: "SimSun", "宋体", "Songti SC", "Microsoft YaHei", monospace;
-    color: #111;
-    -webkit-font-smoothing: none;
-  }
-
-  .app {
-    width: 100%;
-    max-width: 640px;
-    background: #ffffff;
-    border: 1px solid #3366cc;
-    padding: 24px 20px 20px;
-    position: relative;
-  }
-
-  .page { display: none; }
-  .page.active { display: block; }
-
-  .sys-title {
-    font-size: 20px;
-    font-weight: bold;
-    color: #1a1a1a;
-    text-align: center;
-    margin-bottom: 4px;
-    letter-spacing: 2px;
-  }
-
-  .sys-sub {
-    text-align: center;
-    font-size: 12px;
-    color: #666;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #ccd9f0;
-    letter-spacing: 1px;
-  }
-
-  .form-row { margin-bottom: 16px; }
-
-  .form-row label {
-    display: block;
-    font-size: 13px;
-    color: #333;
-    font-weight: bold;
-    margin-bottom: 4px;
-  }
-
-  .form-row input {
-    width: 100%;
-    background: #fff;
-    border: 1px solid #3366cc;
-    padding: 9px 10px;
-    font-size: 14px;
-    font-family: inherit;
-    color: #111;
-    outline: none;
-  }
-
-  .form-row input:focus { background: #f5f8ff; }
-  .form-row input::placeholder { color: #aaa; }
-
-  .err { color: #cc0000; font-size: 12px; margin-top: 4px; display: none; }
-  .err.show { display: block; }
-
-  .btn {
-    display: block;
-    width: 100%;
-    background: #3366cc;
-    color: #fff;
-    border: 1px solid #3366cc;
-    padding: 10px;
-    font-size: 14px;
-    font-family: inherit;
-    font-weight: bold;
-    cursor: pointer;
-    letter-spacing: 1px;
-  }
-
-  .btn:hover { background: #2a55aa; }
-  .btn:disabled { background: #999; border-color: #999; cursor: default; }
-
-  .btn-secondary {
-    background: #fff;
-    color: #3366cc;
-    border: 1px solid #3366cc;
-    margin-top: 16px;
-  }
-
-  .btn-secondary:hover { background: #f0f4ff; }
-
-  .loading-box { text-align: center; padding: 60px 0 40px; }
-
-  .loading-bar {
-    width: 200px;
-    height: 4px;
-    background: #e0e8f5;
-    margin: 0 auto 16px;
-    border: 1px solid #ccd9f0;
-    overflow: hidden;
-  }
-
-  .loading-bar-fill {
-    height: 100%;
-    width: 0%;
-    background: #3366cc;
-    animation: loadfill 2s linear forwards;
-  }
-
-  @keyframes loadfill {
-    0% { width: 0%; }
-    100% { width: 100%; }
-  }
-
-  .loading-text { font-size: 13px; color: #666; }
-
-  .score-head {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 14px;
-    font-size: 12px;
-    color: #555;
-  }
-
-  .score-head span {
-    background: #f0f4ff;
-    border: 1px solid #ccd9f0;
-    padding: 3px 8px;
-  }
-
-  .score-table {
-    width: 100%;
-    border-collapse: collapse;
-    border: 1px solid #3366cc;
-    margin-bottom: 12px;
-  }
-
-  .score-table th {
-    background: #f0f4ff;
-    color: #333;
-    font-size: 12px;
-    padding: 7px 8px;
-    text-align: left;
-    border-bottom: 1px solid #3366cc;
-    font-weight: bold;
-  }
-
-  .score-table td {
-    padding: 8px;
-    font-size: 13px;
-    color: #111;
-    border-bottom: 1px solid #e0e8f5;
-    background: #fff;
-  }
-
-  .score-table tr:last-child td { border-bottom: none; }
-
-  .score-table td:last-child,
-  .score-table th:last-child {
-    text-align: right;
-    font-family: monospace;
-    font-size: 14px;
-  }
-
-  .score-table .total-row td {
-    background: #fafcff;
-    font-weight: bold;
-    font-size: 15px;
-  }
-
-  .score-table .total-row td:last-child {
-    color: #3366cc;
-    font-size: 18px;
-  }
-
-  .hint-link {
-    text-align: center;
-    font-size: 12px;
-    color: #888;
-    margin-top: 16px;
-    padding-top: 12px;
-    border-top: 1px dashed #ccd9f0;
-    cursor: pointer;
-  }
-
-  .hint-link:hover { color: #3366cc; }
-  .hint-link b { color: #3366cc; }
-
-  .clue-box {
-    display: none;
-    margin-top: 10px;
-    background: #f8faff;
-    border: 1px solid #ccd9f0;
-    padding: 12px;
-    font-size: 12px;
-    line-height: 1.7;
-    color: #333;
-  }
-
-  .clue-box.show { display: block; }
-  .clue-box strong { color: #cc0000; }
-
-  .sys-warn {
-    background: #fff8f0;
-    border: 1px solid #cc6600;
-    padding: 10px 12px;
-    font-size: 12px;
-    color: #993300;
-    margin-bottom: 14px;
-    line-height: 1.6;
-    display: none;
-  }
-
-  .sys-warn.show { display: block; }
-
-  .archive-title {
-    font-size: 16px;
-    font-weight: bold;
-    color: #1a1a1a;
-    text-align: center;
-    margin-bottom: 2px;
-    letter-spacing: 2px;
-  }
-
-  .archive-sub {
-    text-align: center;
-    font-size: 11px;
-    color: #888;
-    margin-bottom: 18px;
-    letter-spacing: 1px;
-  }
-
-  .archive-card {
-    border: 1px solid #3366cc;
-    margin-bottom: 10px;
-  }
-
-  .archive-card-head {
-    background: #f0f4ff;
-    padding: 8px 10px;
-    font-size: 13px;
-    font-weight: bold;
-    color: #1a1a1a;
-    cursor: pointer;
-    border-bottom: 1px solid #e0e8f5;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .archive-card-head:hover { background: #e0e8f5; }
-
-  .archive-card-head .tag {
-    font-size: 11px;
-    font-weight: normal;
-    color: #3366cc;
-  }
-
-  .archive-card-head .tag.locked { color: #cc0000; }
-
-  .archive-card-body {
-    display: none;
-    padding: 10px;
-    font-size: 12px;
-    line-height: 1.8;
-    color: #333;
-    background: #fff;
-  }
-
-  .archive-card-body.show { display: block; }
-
-  .archive-card-body .row {
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px dotted #e0e8f5;
-    padding: 3px 0;
-  }
-
-  .archive-card-body .row:last-child { border-bottom: none; }
-
-  .archive-card-body .label { color: #666; }
-  .archive-card-body .value { color: #111; font-weight: bold; font-family: monospace; }
-
-  .archive-list-item {
-    border-bottom: 1px solid #e0e8f5;
-    padding: 6px 10px;
-    font-size: 12px;
-    color: #888;
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .archive-list-item:last-child { border-bottom: none; }
-
-  .recycle-link {
-    text-align: center;
-    margin-top: 18px;
-    padding-top: 12px;
-    border-top: 1px solid #ccd9f0;
-    font-size: 12px;
-    color: #888;
-    cursor: pointer;
-  }
-
-  .recycle-link:hover { color: #3366cc; }
-
-  .pw-box { text-align: center; padding: 30px 0; }
-
-  .pw-box .pw-label {
-    font-size: 13px;
-    color: #333;
-    margin-bottom: 10px;
-    font-weight: bold;
-  }
-
-  .pw-input {
-    width: 120px;
-    text-align: center;
-    font-size: 22px;
-    font-family: monospace;
-    letter-spacing: 8px;
-    padding: 8px;
-    border: 1px solid #3366cc;
-    outline: none;
-    background: #fff;
-    color: #111;
-  }
-
-  .pw-input:focus { background: #f5f8ff; }
-
-  .pw-err { color: #cc0000; font-size: 12px; margin-top: 8px; display: none; }
-  .pw-err.show { display: block; }
-
-  .recycle-title {
-    font-size: 16px;
-    font-weight: bold;
-    color: #1a1a1a;
-    text-align: center;
-    margin-bottom: 2px;
-    letter-spacing: 2px;
-  }
-
-  .recycle-sub {
-    text-align: center;
-    font-size: 11px;
-    color: #888;
-    margin-bottom: 16px;
-  }
-
-  .log-box {
-    border: 1px solid #3366cc;
-    padding: 12px;
-    min-height: 120px;
-    max-height: 400px;
-    overflow-y: auto;
-    font-size: 13px;
-    line-height: 1.8;
-    color: #111;
-    background: #fff;
-    font-family: "SimSun", "宋体", monospace;
-    margin-bottom: 12px;
-    white-space: pre-wrap;
-  }
-
-  .log-box .warn { color: #cc0000; font-weight: bold; }
-  .log-box .dark { color: #666; }
-
-  .ending-box { padding: 20px 0; }
-
-  .ending-title {
-    font-size: 18px;
-    font-weight: bold;
-    color: #1a1a1a;
-    text-align: center;
-    margin-bottom: 16px;
-    letter-spacing: 2px;
-  }
-
-  .ending-text {
-    font-size: 13px;
-    line-height: 2;
-    color: #333;
-    background: #f8faff;
-    border: 1px solid #ccd9f0;
-    padding: 16px;
-    margin-bottom: 14px;
-  }
-
-  .ending-text p { margin-bottom: 8px; }
-  .ending-text .red { color: #cc0000; font-weight: bold; }
-  .ending-text .key { color: #3366cc; font-weight: bold; }
-
-  .notice-toggle {
-    text-align: center;
-    font-size: 12px;
-    color: #888;
-    margin-bottom: 16px;
-    cursor: pointer;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-
-  .notice-toggle:hover { color: #3366cc; }
-
-  .notice-box {
-    display: none;
-    background: #fff;
-    border: 1px solid #3366cc;
-    padding: 14px;
-    margin-bottom: 18px;
-    font-size: 12px;
-    line-height: 1.8;
-    color: #333;
-  }
-
-  .notice-box.show { display: block; }
-
-  .notice-box .notice-title {
-    font-weight: bold;
-    color: #1a1a1a;
-    margin-bottom: 6px;
-    font-size: 13px;
-    text-align: center;
-    letter-spacing: 1px;
-  }
-
-  .notice-box ol {
-    padding-left: 18px;
-    margin-top: 6px;
-  }
-
-  .notice-box li { margin-bottom: 4px; }
-
-  .ghost {
-    font-size: 11px;
-    color: #ffffff;
-    user-select: text;
-    margin-top: 10px;
-    text-align: center;
-    line-height: 1.6;
-  }
-
-  .ghost::selection { background: #3366cc; color: #fff; }
-
-  .footer-note {
-    text-align: center;
-    font-size: 10px;
-    color: #bbb;
-    margin-top: 14px;
-    letter-spacing: 1px;
-  }
-
-  #jumpscare {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: #000;
-    z-index: 9999;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  #jumpscare.show { display: flex; }
-
-  #jumpscare .face-wrap {
-    animation: scareZoom 0.08s infinite alternate, scareShake 0.05s infinite;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  @keyframes scareZoom {
-    0% { transform: scale(1); }
-    100% { transform: scale(1.15); }
-  }
-
-  @keyframes scareShake {
-    0% { transform: translate(0, 0) scale(1); }
-    25% { transform: translate(-3px, 2px) scale(1.05); }
-    50% { transform: translate(3px, -2px) scale(1); }
-    75% { transform: translate(-2px, -3px) scale(1.08); }
-    100% { transform: translate(2px, 3px) scale(1); }
-  }
-
-  #jumpscare .scare-text {
-    color: #cc0000;
-    font-size: 42px;
-    font-weight: bold;
-    font-family: "SimHei", "黑体", sans-serif;
-    letter-spacing: 8px;
-    text-shadow: 0 0 20px #ff0000;
-    animation: textFlash 0.1s infinite alternate;
-  }
-
-  @keyframes textFlash {
-    0% { color: #cc0000; }
-    100% { color: #ffffff; }
-  }
-
-  #jumpscare .sub-scare {
-    color: #888;
-    font-size: 14px;
-    margin-top: 24px;
-    letter-spacing: 4px;
-    font-family: monospace;
-  }
-
-  body.shake { animation: bodyShake 0.08s infinite; }
-
-  @keyframes bodyShake {
-    0% { transform: translate(0, 0); }
-    25% { transform: translate(-5px, 3px); }
-    50% { transform: translate(5px, -3px); }
-    75% { transform: translate(-3px, -5px); }
-    100% { transform: translate(3px, 5px); }
-  }
-
-  @media (max-width: 420px) {
-    .app { padding: 18px 12px 16px; }
-    .sys-title { font-size: 17px; }
-    .btn { font-size: 13px; padding: 9px; }
-  }
+/* =========================================================
+   不是黑客终端。是学校信息中心 2016 年拼的 ASP 查询页。
+   宋体、灰底、1px 实线表格、蓝色链接、字号忽大忽小。
+   ========================================================= */
+:root{
+  --gray:#ece9e4;        /* 老系统灰底 */
+  --paper:#fffefb;
+  --line:#b9b6ae;
+  --line2:#d8d5cf;
+  --ink:#22201d;
+  --ink2:#5c5852;
+  --graytxt:#8d8981;
+  --link:#0049b8;
+  --visited:#6a3fa0;
+  --warn:#c25e00;
+  --red:#a31414;
+  --blood:#3a0d0d;
+  --bloodbg:#f0dcd8;
+  --bloodline:#a86363;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--gray);color:var(--ink);
+  font-family:"SimSun","宋体","NSimSun",serif;
+  font-size:14px;line-height:1.75;
+  -webkit-tap-highlight-color:transparent}
+/* 老页面那层细密网点底纹 */
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;
+  background-image:radial-gradient(rgba(0,0,0,.045) 1px,transparent 1px);
+  background-size:4px 4px;opacity:.55}
+body.tainted{background:var(--bloodbg);color:#4a1010}
+body.tainted::before{background-image:radial-gradient(rgba(120,20,20,.10) 1px,transparent 1px)}
+
+.wrap{position:relative;z-index:2;max-width:600px;margin:0 auto;padding:10px 8px 70px}
+
+/* ---------- 老式外框 ---------- */
+.frame{background:var(--paper);border:1px solid var(--line);
+  box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #cfccc5}
+.frame.on{display:block}
+.card{display:none}
+.card.on{display:block}
+
+/* 页头：仿学校站那一排小字 + 表格导航 */
+.top{background:#f6f4ef;border-bottom:1px solid var(--line);padding:6px 9px;
+  font-family:"SimSun",serif;font-size:11.5px;color:var(--ink2);line-height:1.6}
+.top .school{font-size:13px;color:var(--ink);letter-spacing:0}
+.top .nav{margin-top:4px;color:var(--graytxt)}
+.top .nav a{color:var(--link);text-decoration:underline;margin-right:9px;white-space:nowrap}
+.top .nav a:visited{color:var(--visited)}
+.top .nav a:hover{color:#fff;background:var(--link);text-decoration:none}
+body.tainted .top{background:#e8d2ce;border-bottom-color:var(--bloodline)}
+body.tainted .top .nav a{color:#7d2020}
+
+.hd{padding:11px 12px 9px;border-bottom:2px solid #8f8c85}
+h1{font-family:"SimHei","黑体",sans-serif;font-size:19px;font-weight:700;color:#111;letter-spacing:0}
+body.tainted h1{color:var(--red)}
+.sub{margin-top:3px;font-size:11.5px;color:var(--graytxt)}
+.sub .blink{color:var(--warn);font-weight:700}
+.notice{background:#fff8e6;border:1px solid #e6cf9a;padding:7px 9px;margin:9px 12px;
+  font-size:12px;line-height:1.85;color:#6b4d10}
+.notice b{color:#a31414}
+.notice .x{float:right;color:var(--link);cursor:pointer;text-decoration:underline;font-size:11px}
+body.tainted .notice{background:#f2dede;border-color:var(--bloodline);color:#661414}
+
+.bd{padding:11px 12px 14px}
+
+/* 老式字段表：左边标签灰底右对齐，右边值 */
+table.f{width:100%;border-collapse:collapse;font-size:13px}
+table.f th{background:#f2f0eb;border:1px solid var(--line2);width:74px;
+  text-align:right;padding:5px 8px;font-weight:400;color:var(--ink2);white-space:nowrap}
+table.f td{border:1px solid var(--line2);padding:5px 8px;color:var(--ink)}
+body.tainted table.f th{background:#e9d5d2;border-color:var(--bloodline)}
+body.tainted table.f td{border-color:var(--bloodline)}
+
+/* 成绩表：真·表格，居中，等宽数字 */
+table.score{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px;
+  font-family:"SimSun",serif;text-align:center}
+table.score th{background:#e8e6e1;border:1px solid var(--line);padding:4px 4px;font-weight:700;color:#333}
+table.score td{border:1px solid var(--line2);padding:4px 4px;
+  font-family:"Courier New",monospace;font-size:13.5px}
+table.score tr.sum td{background:#fdf6e6;font-weight:700}
+table.score tr.sum td.bad{color:var(--warn)}
+body.tainted table.score th{background:#e4caca;border-color:var(--bloodline)}
+body.tainted table.score td{border-color:var(--bloodline);color:#7a1a1a}
+body.tainted table.score td.q,td.q{color:var(--red);font-weight:700;letter-spacing:1px}
+td.q{color:var(--warn);font-weight:700}
+
+/* 输入框 / 按钮：Windows 经典款 */
+.in{width:100%;background:#fff;border:2px inset #cfccc5;border-radius:0;
+  color:var(--ink);padding:5px 6px;font-family:"SimSun",serif;font-size:14px;
+  outline:none;margin:8px 0 6px}
+.in:focus{border-color:#2f6fd0;border-style:inset}
+body.tainted .in{background:#f7ebe9;border-color:var(--bloodline);color:#5e1212}
+.btn{display:inline-block;background:#e8e6e1;border:2px outset #d5d2cb;color:#111;
+  padding:4px 14px;font-family:"SimSun",serif;font-size:13px;cursor:pointer;
+  margin:6px 6px 0 0;line-height:1.6}
+.btn:active{border-style:inset}
+.btn:hover{background:#dfe6f5}
+.btn.pri{background:#dbe7fb;border-color:#9fb7e3;font-weight:700}
+body.tainted .btn{background:#eadedd;border-color:var(--bloodline);color:#5e1212}
+body.tainted .btn:hover{background:#e0c8c6}
+.btn.ask{color:var(--link);background:none;border:0;text-decoration:underline;
+  padding:0;margin:8px 0 0;font-size:12.5px}
+.btn.ask:hover{background:var(--link);color:#fff}
+body.tainted .btn.ask{color:#8a2020}
+
+.tip{margin-top:11px;padding-top:8px;border-top:1px dotted var(--line2);
+  font-size:11.5px;color:var(--graytxt);line-height:1.9}
+.tip b{color:var(--ink2);font-weight:400}
+body.tainted .tip{border-color:var(--bloodline);color:#8a4a4a}
+.hint{margin-top:8px;font-size:12px;line-height:1.85;color:var(--warn);display:none}
+.hint .r{color:var(--red);font-weight:700}
+
+/* 档案列表：像收件箱 */
+.rec{border:1px solid var(--line2);background:#fbfaf7;padding:6px 8px;margin-top:6px;
+  font-size:12px;line-height:1.8;cursor:pointer}
+.rec:hover{background:#eef3fb;border-color:#9fb7e3}
+.rec .rid{font-family:"Courier New",monospace;font-size:11.5px;color:var(--link)}
+.rec .rnm{font-family:"SimHei",sans-serif;font-size:14px;color:#1a1a1a}
+.rec .rmt{color:var(--ink2);font-size:11.5px;margin-top:2px}
+.rec.locked .rnm{color:var(--graytxt);font-family:"SimSun",serif;font-size:12.5px;font-weight:400}
+.rec.ghostc{background:#f5f4f0;color:var(--graytxt)}
+.rec.ghostc .rnm{color:var(--graytxt);font-family:"SimSun",serif;font-size:12.5px}
+.rec.dead .rnm{color:var(--red);text-decoration:line-through}
+.rec .flag{float:right;font-size:11px;color:var(--warn);border:1px solid #e0c69a;
+  background:#fff8e6;padding:0 4px}
+body.tainted .rec{background:#f4e3e1;border-color:var(--bloodline)}
+body.tainted .rec:hover{background:#ead0cd}
+body.tainted .rec .rid{color:#8a2020}
+body.tainted .rec .rnm{color:#5e1212}
+body.tainted .rec .flag{background:#e8cccc;border-color:var(--bloodline);color:#7a1a1a}
+
+/* 进度条：老式分段格 */
+prog{display:block;height:11px;border:2px inset #cfccc5;background:#fff;margin:7px 0;position:relative}
+prog i{display:block;height:100%;background:#0a6b3b;width:0;
+  background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 2px,transparent 2px 4px)}
+body.tainted prog i{background:#8a2020}
+
+.acc{display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.acc .in{width:88px;margin:0;text-align:center;font-family:"Courier New",monospace;
+  font-size:17px;letter-spacing:3px}
+.acc .btn{margin:0}
+
+/* 终端区：不是黑框，是老式的 pre 灰框 */
+pre.tty{background:#f4f3ef;border:2px inset #cfccc5;padding:7px 8px;
+  font-family:"Courier New",monospace;font-size:12px;line-height:1.85;color:#2c2a26;
+  white-space:pre-wrap;word-break:break-all;min-height:96px;margin-top:9px}
+body.tainted pre.tty{background:#f0dedd;border-color:var(--bloodline);color:#5a1414}
+.cur::after{content:"_";animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+
+.ft2{margin-top:12px;padding-top:7px;border-top:1px solid var(--line2);
+  font-size:11px;color:var(--graytxt);text-align:center;line-height:1.9}
+.ft2 a{color:var(--link);text-decoration:underline}
+body.tainted .ft2{border-color:var(--bloodline);color:#8a4a4a}
+
+/* ---------- ① 白屏闪断：就是一秒的正常成绩页 ---------- */
+#flash{position:fixed;inset:0;background:#fff;z-index:900;display:none;
+  padding:14px;font-family:"SimSun",serif}
+#flash .fbox{max-width:600px;margin:0 auto;border:1px solid #999;background:#fff}
+#flash .fhd{background:#eae8e3;border-bottom:1px solid #999;padding:5px 8px;
+  font-family:"SimHei",sans-serif;font-size:15px}
+#flash .fbd{padding:9px 10px;font-size:12.5px;color:#333}
+#flash table.score th{background:#eee;border:1px solid #aaa}
+#flash table.score td{border:1px solid #ccc}
+#flash .fwait{margin-top:10px;font-size:11.5px;color:#666}
+#flash .fwait span{background:#000;color:#fff;padding:0 5px;font-family:"Courier New",monospace;
+  animation:blink 1s steps(2) infinite}
+
+/* ---------- ② 黑屏 0.5 秒 ---------- */
+#black{position:fixed;inset:0;background:#000;z-index:800;display:none;
+  justify-content:center;align-items:center;color:#3a3a3a;
+  font-family:"SimSun",serif;font-size:11.5px;letter-spacing:2px}
+#black.on{display:flex}
+
+/* ---------- ③ 恐怖 overlay：仿 Windows 提示框 ---------- */
+#ov{position:fixed;inset:0;background:rgba(60,58,54,.82);z-index:850;display:none;
+  justify-content:center;align-items:center;padding:20px}
+#ovbox{background:#f4f2ed;border:2px solid #7d7a73;box-shadow:3px 3px 0 rgba(0,0,0,.35);
+  max-width:380px;width:100%;padding:0}
+#ovti{background:#0a246a;color:#fff;font-family:"SimHei",sans-serif;font-size:12.5px;
+  padding:3px 7px;display:flex;justify-content:space-between}
+#ovti i{font-style:normal;cursor:pointer;padding:0 5px;border:1px solid #fff;line-height:1.1;font-size:11px}
+#ovti i:hover{background:#fff;color:#0a246a}
+#ovbd{padding:13px 12px;font-family:"SimSun",serif;font-size:13px;line-height:2;color:#1e1c19;
+  white-space:pre-wrap;text-align:center}
+#ovbd .rr{color:var(--red);font-weight:700}
+#ovft{padding:0 0 11px;text-align:center}
+#ovft button{background:#e8e6e1;border:2px outset #d5d2cb;font-family:"SimSun",serif;
+  font-size:12.5px;padding:3px 20px;cursor:pointer}
+#ovft button:active{border-style:inset}
+body.tainted #ovbox{border-color:var(--bloodline)}
+body.tainted #ovti{background:#7a1a1a}
+body.tainted #ovbd{background:#f7ebe9;color:#4a1010}
+
+/* ---------- ② 版本号：长得就像个不能点的版权字 ---------- */
+.ft2 .ver{border-bottom:1px dotted #9a9a9a;cursor:default}
+.ft2 .ver:hover{color:#0a246a;border-bottom-color:#0a246a}
+body.tainted .ft2 .ver:hover{color:#8a2020;border-bottom-color:#8a2020}
+
+/* ---------- ② 连点 5 次后的故障态：像显示器坏了，不像特效 ---------- */
+body.glitch{animation:gl .5s steps(1) 3}
+body.glitch .frame{transform:translateX(2px)}
+body.glitch .card{filter:contrast(1.35) saturate(.55)}
+@keyframes gl{
+  0%  {filter:none;            transform:translateX(0)}
+  20% {filter:invert(1);       transform:translateX(-3px)}
+  24% {filter:none;            transform:translateX(2px)}
+  50% {filter:contrast(2.4);   transform:translateX(-1px)}
+  54% {filter:invert(1) hue-rotate(90deg);transform:translateX(3px)}
+  80% {filter:sepia(1) contrast(1.6); transform:translateX(-2px)}
+  100%{filter:none;            transform:translateX(0)}
+}
+#sb.wiped{background:#0a246a;color:#fff}
+#sb.wiped #sbT::after{content:"　本地记录已清除 0 字节 … …… 已重新写入 1 字节"}
+
+/* ---------- 返回键：右下角透明热区，字是灰的 ---------- */
+#back{position:fixed;right:0;bottom:0;width:60px;height:60px;z-index:700;
+  background:transparent;border:0;cursor:pointer;font-family:"SimSun",serif}
+#back::after{content:"返回";position:absolute;right:6px;bottom:5px;font-size:11px;
+  color:#cfccc5;text-decoration:underline}
+#back:hover::after{color:var(--link)}
+body.tainted #back::after{color:#b08a8a}
+body.tainted #back:hover::after{color:#8a2020}
+
+/* 老 IE 那行状态栏 */
+#sb{position:fixed;left:0;right:0;bottom:0;z-index:690;height:19px;
+  background:#ece9e4;border-top:1px solid #fff;box-shadow:0 -1px 0 #b9b6ae;
+  font-family:"SimSun",serif;font-size:11px;color:#4a4741;line-height:18px;
+  padding:0 7px;overflow:hidden;white-space:nowrap}
+body.tainted #sb{background:#ecdad7;color:#6a2020}
+#sb em{font-style:normal;color:var(--warn)}
 </style>
 </head>
 <body>
-<div class="app" id="app">
 
-  <!-- ========== 首页 ========== -->
-  <div id="homePage" class="page active">
-    <div class="sys-title">期中考试查分系统</div>
-    <div class="sys-sub">成绩查询 · 数据同步 · v3.1.2</div>
-
-    <div class="notice-toggle" id="noticeToggle">📋 系统公告（点击展开）</div>
-    <div class="notice-box" id="noticeBox">
-      <div class="notice-title">关于近期成绩查询异常的说明</div>
-      <ol>
-        <li>本学期期中考试成绩已发布，请使用姓名与班级查询。</li>
-        <li>近期部分学生反映查询结果全为0分，经查系数据库同步异常，技术部门已介入修复。</li>
-        <li>系统内所有 <b>ZERO 系列档案</b> 均已注销，不可查询，请勿尝试访问。</li>
-        <li>档案室仅限管理员访问。如发现异常数据残留，请联系信息中心。</li>
-        <li>系统回收站已加密。访问码规则：<b>最后一位注销学生的查分日期（月日）</b>。</li>
-      </ol>
-      <div style="text-align:right;margin-top:8px;color:#888;font-size:11px;">—— 信息中心 2024-03-15</div>
-    </div>
-
-    <div class="form-row">
-      <label>学生姓名</label>
-      <input type="text" id="nameInput" placeholder="例：张三" autocomplete="off">
-      <div class="err" id="nameErr">请输入姓名</div>
-    </div>
-
-    <div class="form-row">
-      <label>班级</label>
-      <input type="text" id="classInput" placeholder="例：初二（1）班" autocomplete="off">
-      <div class="err" id="classErr">请输入班级</div>
-    </div>
-
-    <button class="btn" id="queryBtn">开始查分</button>
-
-    <div class="footer-note">© 2024 教务处信息中心 · 技术支持：成绩查询系统 v3.1.2</div>
-  </div>
-
-  <!-- ========== 加载页 ========== -->
-  <div id="loadingPage" class="page">
-    <div class="loading-box">
-      <div class="loading-bar">
-        <div class="loading-bar-fill" id="loadFill"></div>
-      </div>
-      <div class="loading-text" id="loadText">正在连接成绩服务器…</div>
+<!-- ① 一秒的"正常成绩单"（不是鬼图，是真的像出分了） -->
+<div id="flash">
+  <div class="fbox">
+    <div class="fhd">初二(18)班 期中考试 成绩查询</div>
+    <div class="fbd">
+      <table class="f">
+        <tr><th>姓　名</th><td id="flNm">—</td><th>考　号</th><td id="flSid">—</td></tr>
+        <tr><th>班　级</th><td>初二(18)班</td><th>查询时间</th><td id="flTs">—</td></tr>
+      </table>
+      <table class="score">
+        <tr><th>语文</th><th>数学</th><th>英语</th><th>物理</th><th>总分</th><th>班名</th></tr>
+        <tr><td id="flC">—</td><td id="flM">—</td><td id="flE">—</td><td id="flP">—</td>
+            <td id="flT">—</td><td id="flR">—</td></tr>
+      </table>
+      <div class="fwait">正在从服务器调取原卷扫描件　<span>请勿关闭窗口</span></div>
     </div>
   </div>
-
-  <!-- ========== 成绩页 ========== -->
-  <div id="resultPage" class="page">
-    <div class="score-head">
-      <span>学生：<b id="rName">—</b></span>
-      <span>班级：<b id="rClass">—</b></span>
-    </div>
-
-    <div class="sys-warn" id="sysWarn"></div>
-
-    <table class="score-table">
-      <thead>
-        <tr><th>科目</th><th>分数 / 满分</th></tr>
-      </thead>
-      <tbody id="scoreBody"></tbody>
-    </table>
-
-    <button class="btn btn-secondary" id="reviewBtn" style="margin-top:6px;display:none;">申请成绩复核</button>
-
-    <div class="hint-link" id="hintLink">查出来为0分？<b>点我查看</b></div>
-    <div class="clue-box" id="clueBox">
-      <div id="clueContent"></div>
-    </div>
-
-    <button class="btn btn-secondary" id="backBtn">← 返回重新查询</button>
-  </div>
-
-  <!-- ========== 档案室 ========== -->
-  <div id="archivePage" class="page">
-    <div class="archive-title">档案室</div>
-    <div class="archive-sub">受限访问 · 仅可查看注销记录</div>
-
-    <div style="font-size:11px;color:#888;margin-bottom:10px;text-align:center;">
-      共 13 条注销档案 · 显示 1-13
-    </div>
-
-    <!-- ZERO-01 ~ 06 简略列表 -->
-    <div class="archive-card">
-      <div class="archive-card-head" onclick="toggleCard(this)">
-        <span>ZERO-01 ~ ZERO-06</span>
-        <span class="tag">已注销</span>
-      </div>
-      <div class="archive-card-body">
-        <div class="archive-list-item"><span>ZERO-01 · 2022-11-03</span><span>数据已清空</span></div>
-        <div class="archive-list-item"><span>ZERO-02 · 2022-12-15</span><span>数据已清空</span></div>
-        <div class="archive-list-item"><span>ZERO-03 · 2023-01-09</span><span>数据已清空</span></div>
-        <div class="archive-list-item"><span>ZERO-04 · 2023-02-21</span><span>数据已清空</span></div>
-        <div class="archive-list-item"><span>ZERO-05 · 2023-03-08</span><span>数据已清空</span></div>
-        <div class="archive-list-item"><span>ZERO-06 · 2023-04-02</span><span>数据已清空</span></div>
-      </div>
-    </div>
-
-    <!-- ZERO-07 林晓 -->
-    <div class="archive-card">
-      <div class="archive-card-head" onclick="toggleCard(this)">
-        <span>档案 ZERO-07</span>
-        <span class="tag">已注销</span>
-      </div>
-      <div class="archive-card-body">
-        <div class="row"><span class="label">姓名</span><span class="value">林晓</span></div>
-        <div class="row"><span class="label">班级</span><span class="value">初二(3)班</span></div>
-        <div class="row"><span class="label">查分日期</span><span class="value">2023-04-17</span></div>
-        <div class="row"><span class="label">学号</span><span class="value">20230417</span></div>
-        <div class="row"><span class="label">状态</span><span class="value">已注销</span></div>
-        <div class="row"><span class="label">备注</span><span class="value">查分后失踪</span></div>
-        <div style="margin-top:8px;padding-top:8px;border-top:1px dashed #ccd9f0;font-size:12px;color:#555;">
-          <b>关联信息：</b>2023-04-17 同日，ZERO-13 首次登录系统。<br>
-          ZERO-13 姓名首字：<b>方</b>
-        </div>
-      </div>
-    </div>
-
-    <!-- ZERO-09 陈默 -->
-    <div class="archive-card">
-      <div class="archive-card-head" onclick="toggleCard(this)">
-        <span>档案 ZERO-09</span>
-        <span class="tag">已注销</span>
-      </div>
-      <div class="archive-card-body">
-        <div class="row"><span class="label">姓名</span><span class="value">陈默</span></div>
-        <div class="row"><span class="label">班级</span><span class="value">初二(7)班</span></div>
-        <div class="row"><span class="label">查分日期</span><span class="value">2023-08-21</span></div>
-        <div class="row"><span class="label">学号</span><span class="value">20230821</span></div>
-        <div class="row"><span class="label">状态</span><span class="value">已注销</span></div>
-        <div class="row"><span class="label">备注</span><span class="value">查分后失踪</span></div>
-        <div style="margin-top:8px;padding-top:8px;border-top:1px dashed #ccd9f0;font-size:12px;color:#555;">
-          <b>最后操作：</b>查询 ZERO-13 档案。<br>
-          <b>操作备注：</b>“<b>方琦</b>，<b>初二18班</b>，你还好吗。”
-        </div>
-      </div>
-    </div>
-
-    <!-- ZERO-13 加密 -->
-    <div class="archive-card">
-      <div class="archive-card-head" onclick="toggleCard(this)">
-        <span>档案 ZERO-13</span>
-        <span class="tag locked" id="zero13tag">加密</span>
-      </div>
-      <div class="archive-card-body" id="zero13body">
-        <div id="zero13locked">
-          <div style="color:#cc0000;font-size:12px;line-height:1.9;">
-            档案已加密。<br><br>
-            解锁条件：在首页输入该学生<b>姓名</b>与<b>班级</b>完成查分。<br><br>
-            <b>线索：</b><br>
-            · 姓名可从 ZERO-07 与 ZERO-09 档案中恢复<br>
-            · 班级可从 ZERO-09 档案备注中恢复<br>
-            · 该生为“<b>最后消失者</b>”
-          </div>
-        </div>
-        <div id="zero13unlocked" style="display:none;">
-          <div class="row"><span class="label">姓名</span><span class="value">方琦</span></div>
-          <div class="row"><span class="label">班级</span><span class="value">初二(18)班</span></div>
-          <div class="row"><span class="label">查分日期</span><span class="value">2024-03-09</span></div>
-          <div class="row"><span class="label">学号</span><span class="value">20240309</span></div>
-          <div class="row"><span class="label">状态</span><span class="value">已封存</span></div>
-          <div class="row"><span class="label">备注</span><span class="value">最后一位消失者</span></div>
-          <div style="margin-top:8px;padding-top:8px;border-top:1px dashed #ccd9f0;color:#cc0000;font-size:12px;line-height:1.8;">
-            <b>内部批注：</b><br>
-            回收站访问码 = 最后消失者查分月日（4位数字）。<br>
-            该生查分日期：2024-03-09 → 访问码：<b>0309</b>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="recycle-link" id="recycleLink">系统回收站（需要4位访问码）</div>
-
-    <div class="ghost" aria-hidden="true">三位注销者的学号就是他们的查分日期。最后消失的是方琦。</div>
-
-    <button class="btn btn-secondary" id="archiveBackBtn">← 返回首页</button>
-  </div>
-
-  <!-- ========== 密码页 ========== -->
-  <div id="passwordPage" class="page">
-    <div class="archive-title">系统回收站</div>
-    <div class="archive-sub">请输入4位访问码</div>
-
-    <div class="pw-box">
-      <div class="pw-label">访问码</div>
-      <input type="text" class="pw-input" id="pwInput" maxlength="4" inputmode="numeric" autocomplete="off">
-      <div class="pw-err" id="pwErr">访问码错误</div>
-      <button class="btn" id="pwSubmit" style="margin-top:16px;">验证</button>
-    </div>
-
-    <button class="btn btn-secondary" id="pwBackBtn">← 返回档案室</button>
-  </div>
-
-  <!-- ========== 回收站 ========== -->
-  <div id="recyclePage" class="page">
-    <div class="recycle-title">回收站</div>
-    <div class="recycle-sub">共 1 条记录</div>
-
-    <div class="log-box" id="logBox"></div>
-
-    <button class="btn" id="nextLogBtn">下一条 →</button>
-
-    <div class="ghost" aria-hidden="true">如果你感到害怕，请关闭页面。但已经来不及了。</div>
-  </div>
-
-  <!-- ========== 结局页 ========== -->
-  <div id="endingPage" class="page">
-    <div class="ending-box">
-      <div class="ending-title">档案已解封</div>
-
-      <div class="ending-text">
-        <p>你查到了不该查的东西。</p>
-        <p><span class="key">方琦</span>，初二(18)班，2024年3月9日最后一次登录系统。</p>
-        <p>他查到了自己的成绩——<span class="red">0分</span>。</p>
-        <p>然后他消失了。</p>
-        <p>系统把这件事藏了起来，把所有查分结果都改成0分，让所有人都以为只是系统错误。</p>
-        <p>但你找到了他。</p>
-        <p>现在，系统也知道你找到了他。</p>
-        <p class="red" style="margin-top:14px;">从今天起，你的每一次查分都会是0分。</p>
-        <p class="red">因为……你也是ZERO了。</p>
-      </div>
-
-      <div class="ending-text" style="text-align:center;">
-        <p style="font-size:12px;color:#888;">—— 记录终止 ——</p>
-      </div>
-
-      <button class="btn btn-secondary" id="resetBtn">⟳ 重置系统</button>
-    </div>
-  </div>
-
 </div>
 
-<!-- ========== 全屏突脸 ========== -->
-<div id="jumpscare">
-  <div class="face-wrap">
-    <svg width="220" height="260" viewBox="0 0 220 260">
-      <ellipse cx="110" cy="130" rx="90" ry="115" fill="#1a1a1a"/>
-      <ellipse cx="65" cy="100" rx="24" ry="30" fill="#000"/>
-      <ellipse cx="65" cy="100" rx="10" ry="12" fill="#fff"/>
-      <circle cx="65" cy="100" r="5" fill="#000"/>
-      <ellipse cx="155" cy="100" rx="24" ry="30" fill="#000"/>
-      <ellipse cx="155" cy="100" rx="10" ry="12" fill="#fff"/>
-      <circle cx="155" cy="100" r="5" fill="#000"/>
-      <path d="M 50 180 Q 110 230 170 180" stroke="#600" stroke-width="4" fill="none"/>
-      <path d="M 60 185 Q 110 215 160 185" stroke="#300" stroke-width="2" fill="none"/>
-      <path d="M 60 115 L 55 150" stroke="#500" stroke-width="3"/>
-      <path d="M 160 115 L 165 150" stroke="#500" stroke-width="3"/>
-      <path d="M 110 20 L 105 60 L 115 80" stroke="#333" stroke-width="1.5" fill="none"/>
-    </svg>
-    <div class="scare-text" style="margin-top:20px;">我看到你了</div>
-    <div class="sub-scare">TA 在 你 后 面</div>
+<div id="black"></div>
+
+<!-- ③ 仿 Windows 提示框 -->
+<div id="ov">
+  <div id="ovbox">
+    <div id="ovti"><span>成绩查询系统</span><i onclick="closeOv()">×</i></div>
+    <div id="ovbd"></div>
+    <div id="ovft"><button id="ovok" onclick="closeOv()">确 定</button><button id="ovok2" style="display:none">确 定</button></div>
   </div>
+</div>
+
+<button id="back" title="返回上一级"></button>
+<div id="sb">Internet Explorer　|　本地内网　|　<span id="sbT">就绪</span></div>
+
+<div class="wrap frame">
+
+  <!-- ========== 1 查分 ========== -->
+  <section class="card on" id="c1">
+    <div class="top">
+      <div class="school">××市第三十八中学 · 校园信息平台</div>
+      <div class="nav">
+        <a href="javascript:;" onclick="go('c1')">成绩查询</a>
+        <a href="javascript:;" onclick="go('c2')">历史档案</a>
+        <a href="javascript:;">成绩分析</a>
+        <a href="javascript:;" onclick="talk('本功能需班主任授权。','授权人：方琦（已离岗）')">复核申请</a>
+        <a href="javascript:;" onclick="talk('教务处电话：内线 6021','（该分机已于 2024-03-09 停用）')">联系我们</a>
+      </div>
+    </div>
+    <div class="hd">
+      <h1>期中考试 成绩查询</h1>
+      <div class="sub">初二(18)班　共 41 人　·　<a href="javascript:;" style="color:var(--link)" onclick="talk('说明：','1. 成绩以本系统显示为准。\n2. 查询结果为 0 分属正常现象。\n3. 每人限查 1 次，第 2 次起为他人代查。\n4. 复核申请每人 1 次，提交后不可撤回。', true)">查询说明</a>
+        ·　<span class="blink" id="clk">--:--:--</span></div>
+    </div>
+    <div class="notice" id="nt1">
+      <span class="x" onclick="this.parentNode.style.display='none'">关闭</span>
+      <b>公告：</b>本次成绩已于 2024-03-09 21:50 全部发布完毕。<br>
+      仍有 1 份成绩单处于「已读取未确认」状态，请本人尽快确认。<br>
+      历史档案共 13 条，回收站访问码已随最后一位同学一并失效。
+    </div>
+    <div class="bd">
+      <table class="f">
+        <tr><th>您的身份</th><td id="whoami">（未填写）</td></tr>
+        <tr><th>班　级</th><td>初二(18)班</td></tr>
+        <tr><th>考　号</th><td>218<span id="tail">＿＿＿＿</span></td></tr>
+        <tr><th>状　态</th><td style="color:var(--warn)">已连接内网 · 剩余查询 1 次</td></tr>
+      </table>
+      <input class="in" id="nm" placeholder="请输入姓名，然后按回车或点查询" autocomplete="off">
+      <div class="hint" id="h1"></div>
+      <button class="btn pri" onclick="query()">查 询</button>
+      <button class="btn" onclick="go('c2')">历史档案</button>
+      <button class="btn" onclick="talk('提示：','右下角有个「返回」。\n它平时没什么用。\n\n（手机上摸不到的话：连点页脚版本号 5 次。）')">帮 助</button>
+      <div class="tip">
+        <b>技术支持：</b>教务处信息组　内线 6021<br>
+        <b>建议使用</b> IE8 / 360安全浏览器（兼容模式）访问，分辨率 1024×768。<br>
+        <b>注意：</b>本页不保存 cookie。关掉之后，你在不在名单里，以系统那边的记录为准。<br>
+        <b>提示：</b>手机上若摸不到右下角那个「返回」，连点页脚版本号 5 次可手动调出。
+      </div>
+    </div>
+    <div class="ft2">××市第三十八中学 教务处　©2016　|<a href="javascript:;" onclick="talk('备案号：','内网系统，无备案。\n它没打算被外面的人看见。')">内网备案 3305-0218</a>
+      ·　<span class="ver" id="verBtn" title="build 218">系统版本 v2.6.218</span></div>
+  </section>
+
+  <!-- ========== 2 历史档案 ========== -->
+  <section class="card" id="c2">
+    <div class="top">
+      <div class="school">历史档案 / 已注销账号</div>
+      <div class="nav">
+        <a href="javascript:;" onclick="go('c1')">← 返回成绩查询</a>
+        <a href="javascript:;">按日期排序</a>
+        <a href="javascript:;" onclick="talk('导出：','仅支持导出本人记录。\n你的记录导出格式：.zero')">导出</a>
+      </div>
+    </div>
+    <div class="hd">
+      <h1>历 史 档 案</h1>
+      <div class="sub" id="c2sub">共 13 条　·　已加载 9 条　·　4 条权限不足</div>
+    </div>
+    <div class="bd">
+      <prog><i id="pg"></i></prog>
+      <div style="font-size:11.5px;color:var(--graytxt);margin-bottom:6px">
+        加载进度（按注销时间排序）：
+      </div>
+      <div id="list"></div>
+      <div class="rec locked" style="margin-top:10px">
+        <div class="rid">───── 以下 4 条已加密 ─────</div>
+        <div class="rmt">回收站需要 4 位访问码。<span id="accRule">三位注销者的学号，就是他们查分的日期。最后消失的那一位，日期就是访问码。</span></div>
+      </div>
+      <div class="acc">
+        <input class="in" id="acc" maxlength="4" placeholder="····" onkeydown="if(event.key==='Enter')unlock()">
+        <button class="btn pri" onclick="unlock()">打 开 回 收 站</button>
+        <button class="btn" onclick="talk('忘记访问码？','系统不提供找回。\n但规则不难：\n学号不是学号，是某一天。\n系统只在那天开过门。\n\n—— 教务处信息组留（该同事已注销）')">?</button>
+      </div>
+      <div class="hint" id="h2"></div>
+      <div class="tip">
+        <b>提示：</b>名单是按「注销那天」排的，不是按学号。<br>
+        <b>再提示：</b>那几个学号，你好像在哪见过。
+      </div>
+    </div>
+    <div class="ft2">档案只读　·　任何一次打开都会被记在打开者名下</div>
+  </section>
+
+  <!-- ========== 3 回收站 ========== -->
+  <section class="card" id="c3">
+    <div class="top">
+      <div class="school">回收站 / 只读</div>
+      <div class="nav"><a href="javascript:;" onclick="go('c2')">← 返回档案列表</a></div>
+    </div>
+    <div class="hd">
+      <h1>回 收 站</h1>
+      <div class="sub">RECYCLE BIN　·　3 项　·　访问码接受　·　<span style="color:var(--warn)">本次打开已登记</span></div>
+    </div>
+    <div class="bd">
+      <pre class="tty"><span class="cur" id="tty"></span></pre>
+      <div id="r3" style="display:none">
+        <div class="rec dead">
+          <span class="flag">不予变更</span>
+          <div class="rid">档案 13 / 注销于 2024-03-09 21:47:02</div>
+          <div class="rnm">方 琦</div>
+          <div class="rmt">
+            考号 20240309　班名 41/41<br>
+            <table class="score" style="margin:5px 0">
+              <tr><th>语文</th><th>数学</th><th>英语</th><th>物理</th><th>总分</th></tr>
+              <tr><td>61</td><td>38</td><td>44</td><td>21</td><td style="color:var(--red);font-weight:700">164</td></tr>
+            </table>
+            最后操作：<span style="color:var(--red)">提交复核申请（第 1 次，也是最后一次）</span><br>
+            受理 → 办结 → <b>00:04:11 之后，账号状态：注销</b><br>
+            <span style="color:#8a4a4a">核查三项（小题漏统 / 登分错误 / 漏评）：均无异常。<br>
+            他的复核卷，没有人签过字。</span>
+          </div>
+        </div>
+
+        <div class="rec">
+          <span class="flag">正在写入</span>
+          <div class="rid">档案 14 / 写入于 <span id="tdy"></span></div>
+          <div class="rnm" id="me14">＿</div>
+          <div class="rmt">
+            考号 <span id="sid14"></span>　班名 <span id="rk14">41/41</span><br>
+            <table class="score" style="margin:5px 0">
+              <tr><th>语文</th><th>数学</th><th>英语</th><th>物理</th><th>总分</th></tr>
+              <tr><td class="q">?</td><td class="q">?</td><td class="q">?</td><td class="q">?</td><td class="q">? ? ?</td></tr>
+            </table>
+            最后操作：<span style="color:var(--warn)">正在查看「档案 13」的复核结论</span><br>
+            复核申请：<b style="color:var(--warn)">可提交（剩余 1 次）</b>
+          </div>
+        </div>
+
+        <div class="hint" style="display:block" id="r14tip">
+          <b>系统规则第 4 条：</b>每人仅可提交 1 次复核申请。<br>
+          第 13 号把那一次用掉了。你的那一次还在。<br>
+          <span style="color:var(--graytxt)">—— 但提交复核，得先承认这个分数是你的。</span>
+        </div>
+        <button class="btn pri" onclick="commit()">提 交 复 核 申 请</button>
+        <button class="btn" onclick="decline()">这个分数不是我的</button>
+        <div class="tip">回收站内不支持刷新。刷新即视为放弃本次复核，次数不返还。</div>
+      </div>
+    </div>
+    <div class="ft2">回收站　·　清空回收站需要 41/41 人全部确认　·　当前 40/41</div>
+  </section>
+
+  <!-- ========== 4 复核办结 ========== -->
+  <section class="card" id="c4">
+    <div class="top">
+      <div class="school">教务处 · 成绩复核办结通知单</div>
+      <div class="nav"><a href="javascript:;" onclick="talk('打印：','打印机不在线。\n（内线 6021 无人接听。）')">打印</a>
+        <a href="javascript:;" onclick="talk('申诉：','复核结论为终局。\n上一级受理单位：无。')">向上申诉</a></div>
+    </div>
+    <div class="hd">
+      <h1>成 绩 复 核 办 结 通 知</h1>
+      <div class="sub">编号 FANG-218-041　·　结论：<span style="color:var(--red);font-weight:700">不予变更</span></div>
+    </div>
+    <div class="bd">
+      <table class="f">
+        <tr><th>申请人</th><td id="who2">＿</td><th>班级</th><td>初二(18)班</td></tr>
+        <tr><th>原总分</th><td class="q">1 6 4</td><th>复核后</th><td class="q">1 6 4</td></tr>
+        <tr><th>差　异</th><td style="color:var(--red);font-weight:700">0</td><th>办结人</th><td>FANG NO.218</td></tr>
+        <tr><th>办结时间</th><td id="ts">—</td><th>回执</th><td>本页即回执，不另行发放</td></tr>
+      </table>
+      <div class="notice" style="margin:10px 0 0">
+        <b>核查范围说明：</b>本次复核仅核查 ①小题得分是否漏统 ②登分是否错误 ③是否存在漏评。
+        <b>不包含</b>评分宽严与答题质量之评定。<br>
+        <span style="color:#8a5a10">也就是说：我们只能查「加错没有」，查不了「该不该给」。</span>
+      </div>
+      <div style="margin-top:10px;font-size:12.5px;line-height:2;color:var(--ink2)">
+        <b style="color:var(--ink)">附注（系统自动追加，不可删除）：</b><br>
+        第 41 位申请人的复核卷，由第 40 位申请人复核。<br>
+        第 40 位申请人，是方琦。<br>
+        他的复核卷，由第 39 位复核。一路倒回去，<br>
+        第 1 位那一份没有上一手 —— 所以第 1 位的复核人是系统自己。<br>
+        <span style="color:var(--red)">而这一份的复核人，写的是：<b id="who3">＿</b>。</span>
+      </div>
+      <table class="f" style="margin-top:11px">
+        <tr><th>在线人数</th><td>0</td><th>已注销</th><td style="color:var(--red);font-weight:700">41 / 41</td></tr>
+        <tr><th>最后写入</th><td id="ts2">—</td><th>写入来源</th><td>你正在看的这台机器</td></tr>
+      </table>
+      <div class="tip">本页不会出现在浏览器历史里。<br>但你已经在这了，而且系统知道你是从哪一页过来的。</div>
+    </div>
+    <div class="ft2">教务处信息组　内线 6021　·　该分机当前状态：正在通话中
+      ·　<span class="ver" id="verBtn2" title="build 218">v2.6.218</span></div>
+  </section>
+
 </div>
 
 <script>
-(function() {
-  'use strict';
+/* ================= 彩蛋名册 ================= */
+const EGG = {
+  "沈梦玮":{id:"档案07",sid:"20230417",rank:"18/41",
+    sc:[92,108,97,66],sum:363,
+    line1:"他把发给朋友的查分截图删了 7 次。",line2:"第 8 次没删成，系统替他存着。"},
+  "方蒋淇":{id:"档案09",sid:"20230821",rank:"18/41",
+    sc:[101,104,88,71],sum:364,
+    line1:"备注：与档案 13 同姓，非亲属。",line2:"他查完自己的，又替别人查了一次。"}
+};
+const R13 = "方琦";
+let SIGNED_OUT_NAME = null;
+let tainted = false, stage = 1, tries = 0, ovTimer = null;
 
-  // ========== 状态 ==========
-  var unlockedFangQi = false;
-  var queryCount = 0;
-  var logStep = 0;
-  var loadingTimer = null;
-  var hasVisitedArchive = false;
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const now = () => new Date().toLocaleString('zh-CN',{hour12:false});
+const today = () => { const d=new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'); };
+const me = () => ($("whoami").textContent==="（未填写）" ? "（未填写姓名）" : $("whoami").textContent);
 
-  // ========== DOM ==========
-  var pages = {
-    home: document.getElementById('homePage'),
-    loading: document.getElementById('loadingPage'),
-    result: document.getElementById('resultPage'),
-    archive: document.getElementById('archivePage'),
-    password: document.getElementById('passwordPage'),
-    recycle: document.getElementById('recyclePage'),
-    ending: document.getElementById('endingPage')
-  };
+/* 状态栏小字 */
+function sb(t){ $("sbT").textContent = t; }
+setInterval(()=>{ $("clk").textContent = new Date().toLocaleTimeString('zh-CN',{hour12:false}); },1000);
+$("clk").textContent = new Date().toLocaleTimeString('zh-CN',{hour12:false});
 
-  var nameInput = document.getElementById('nameInput');
-  var classInput = document.getElementById('classInput');
-  var nameErr = document.getElementById('nameErr');
-  var classErr = document.getElementById('classErr');
-  var queryBtn = document.getElementById('queryBtn');
+function go(id){
+  ["c1","c2","c3","c4"].forEach(k=>$(k).classList.toggle("on", k===id));
+  stage = +id[1];
+  sb(id==="c1"?"就绪":"正在读取 " + id + " …");
+  window.scrollTo(0,0);
+}
+$("ovbd").addEventListener("click", ovNudge);
+$("ovti").addEventListener("click", ovNudge);
 
-  var rName = document.getElementById('rName');
-  var rClass = document.getElementById('rClass');
-  var scoreBody = document.getElementById('scoreBody');
-  var sysWarn = document.getElementById('sysWarn');
-
-  var hintLink = document.getElementById('hintLink');
-  var clueBox = document.getElementById('clueBox');
-  var clueContent = document.getElementById('clueContent');
-
-  var loadText = document.getElementById('loadText');
-  var loadFill = document.getElementById('loadFill');
-
-  var backBtn = document.getElementById('backBtn');
-  var archiveBackBtn = document.getElementById('archiveBackBtn');
-  var recycleLink = document.getElementById('recycleLink');
-  var reviewBtn = document.getElementById('reviewBtn');
-
-  var zero13tag = document.getElementById('zero13tag');
-  var zero13locked = document.getElementById('zero13locked');
-  var zero13unlocked = document.getElementById('zero13unlocked');
-
-  var pwInput = document.getElementById('pwInput');
-  var pwErr = document.getElementById('pwErr');
-  var pwSubmit = document.getElementById('pwSubmit');
-  var pwBackBtn = document.getElementById('pwBackBtn');
-
-  var logBox = document.getElementById('logBox');
-  var nextLogBtn = document.getElementById('nextLogBtn');
-
-  var resetBtn = document.getElementById('resetBtn');
-
-  var jumpscare = document.getElementById('jumpscare');
-  var appEl = document.getElementById('app');
-
-  var noticeToggle = document.getElementById('noticeToggle');
-  var noticeBox = document.getElementById('noticeBox');
-
-  var subjects = ['语文','数学','英语','物理','道法','历史','地理','生物'];
-
-  // ========== 两套正常成绩数据 ==========
-  // 满分：语文130 数学130 英语120 物理100 道法50 历史50 地理100 生物100
-  // 沈梦玮：均衡偏文，语文英语较好，数理略低
-  var scoresShen = [
-    { subject: '语文', score: 114, full: 130 },
-    { subject: '数学', score: 109, full: 130 },
-    { subject: '英语', score: 105, full: 120 },
-    { subject: '物理', score: 82,  full: 100 },
-    { subject: '道法', score: 43,  full: 50 },
-    { subject: '历史', score: 44,  full: 50 },
-    { subject: '地理', score: 86,  full: 100 },
-    { subject: '生物', score: 88,  full: 100 }
-  ];
-
-  // 方蒋淇：偏理，数学物理较好，语文稍弱
-  var scoresFang = [
-    { subject: '语文', score: 106, full: 130 },
-    { subject: '数学', score: 118, full: 130 },
-    { subject: '英语', score: 103, full: 120 },
-    { subject: '物理', score: 91,  full: 100 },
-    { subject: '道法', score: 39,  full: 50 },
-    { subject: '历史', score: 40,  full: 50 },
-    { subject: '地理', score: 82,  full: 100 },
-    { subject: '生物', score: 81,  full: 100 }
-  ];
-
-  // ========== 工具 ==========
-  function showPage(key) {
-    Object.keys(pages).forEach(function(k) {
-      pages[k].classList.remove('active');
-    });
-    pages[key].classList.add('active');
-    if (key === 'archive') hasVisitedArchive = true;
+/* 老式提示框
+   ms: 数字 = 自动消失的毫秒数（点一下=加速到 OV_FAST_MS，不跳过）
+       "lock" = 不给自动消失，必须点「确 定」（老 IE 弹窗本来就这样）        */
+const OV_FAST_MS = 550;
+let ovForced = false;
+function ovAuto(lines, ms){
+  if(ms === "lock") return 0;
+  let base = ms;
+  if(!base){                                  // 没给时长 → 按字数算
+    const chars = lines.join("").replace(/<[^>]*>/g,"").length;
+    base = 900 + chars * 42;
   }
-
-  function normClass(s) {
-    return s.replace(/[（(]/g, '(').replace(/[）)]/g, ')').replace(/\s/g, '');
-  }
-
-  function clearErrors() {
-    nameErr.classList.remove('show');
-    classErr.classList.remove('show');
-  }
-
-  // ========== 渲染成绩 ==========
-  function renderScores(scoreArr) {
-    var html = '';
-    var total = 0;
-    var fullTotal = 0;
-    scoreArr.forEach(function(item) {
-      html += '<tr><td>' + item.subject + '</td><td>' + item.score + ' / ' + item.full + '</td></tr>';
-      total += item.score;
-      fullTotal += item.full;
-    });
-    html += '<tr class="total-row"><td>总分</td><td>' + total + ' / ' + fullTotal + '</td></tr>';
-    scoreBody.innerHTML = html;
-  }
-
-  function renderZeroScores() {
-    var html = '';
-    subjects.forEach(function(s) {
-      html += '<tr><td>' + s + '</td><td>0</td></tr>';
-    });
-    html += '<tr class="total-row"><td>总分</td><td>0</td></tr>';
-    scoreBody.innerHTML = html;
-  }
-
-  // ========== 公告展开 ==========
-  noticeToggle.addEventListener('click', function() {
-    noticeBox.classList.toggle('show');
-    noticeToggle.textContent = noticeBox.classList.contains('show')
-      ? '📋 收起系统公告'
-      : '📋 系统公告（点击展开）';
+  if(window.__OV_FAST__) base = Math.min(base, OV_FAST_MS);
+  return Math.max(2600, base);
+}
+function overlay(lines,ms,opt){
+  return new Promise(res=>{
+    $("ovbd").innerHTML = lines.join("\n");
+    $("ov").style.display="flex";
+    ovForced = (ms === "lock");
+    $("ovok").textContent = ovForced ? "确 定" : "确 定 ›";
+    $("ovok").title = ovForced ? "" : "点一下可加速，不会跳过";
+    /* 双键模式：两颗都写「确 定」，左边清本地、右边清完顺手把你注销掉。
+       不给「取消」——老 IE 的确认框也没有第三个答案。 */
+    const b2 = $("ovok2");
+    if(opt && opt.dual){
+      b2.style.display="";
+      b2.title="";
+      b2.onclick = ()=>{ overlay._dual = "signout"; closeOv(); };
+    } else { b2.style.display="none"; b2.onclick=null; }
+    overlay._dual = null;
+    clearTimeout(ovTimer); ovTimer = null;
+    const t = ovAuto(lines, ms);
+    if(t) ovTimer = setTimeout(closeOv, t);
+    overlay._res = res;
+    sb(ovForced ? "等待用户确认 …" : "提示已弹出，" + (t/1000).toFixed(1) + "s 后自动继续");
   });
+}
+/* 点弹窗本体 = 加速；点按钮 = 直接关 */
+function ovNudge(){
+  if(!ovForced && ovTimer){
+    clearTimeout(ovTimer);
+    ovTimer = window.__OV_FAST__ ? setTimeout(closeOv,0) : setTimeout(closeOv, OV_FAST_MS);
+    sb("已加速。");
+  }
+}
+function closeOv(){
+  $("ov").style.display="none";
+  clearTimeout(ovTimer); ovTimer=null; ovForced=false;
+  $("ovok2").style.display="none";
+  if(overlay._res){ const r=overlay._res; overlay._res=null; r(overlay._dual); }
+}
+/* talk: 默认锁定等确认；fast=true 时按字数自动走 */
+function talk(a,b,fast,opt){   // fast=true → 按字数自动走；"lock" → 必须点「确 定」
+  return overlay([a,"",b].filter(x=>x!==""), fast===true ? null : (fast || "lock"), opt);
+}
 
-  // ========== 查分 ==========
-  function doQuery() {
-    clearErrors();
-    var name = nameInput.value.trim();
-    var cls = classInput.value.trim();
+/* ============ 污化：暗红 + ??? + 掐死解谜入口 ============ */
+function taint(name){
+  if(tainted) return;
+  tainted = true;
+  document.body.classList.add("tainted");
+  document.body.dataset.st = "tainted";
+  document.title = "查询失败 · 初二(18)班";
+  $("acc").value=""; $("acc").placeholder="失效";
+  $("acc").disabled = true;
+  document.querySelector('.acc .btn.pri').style.display="none";
+  $("accRule").innerHTML = '<span class="r">访问码已于 '+ (EGG[name]?EGG[name].sid:(name==="__decline__"?"20240309":"20240315")) +' 那天失效。</span>'
+    + '回收站不接收已注销账号的请求。<br>'
+    + '<span class="r">你不在 41 人名单里。你从来就不在。</span><br>'
+    + '<span style="color:#8a4a4a">右下角那个「返回」还在。它只是不再通向上一页了。</span>';
+  $("h2").style.display="block";
+  $("h2").innerHTML = '<span class="r">· 该入口已关闭。</span>';
+  $("pg").style.width="100%";
+  $("c2sub").textContent = "共 13 条 · 已加载 13 条 · 你那条刚被写进去";
+  document.querySelectorAll('.top .nav a').forEach(a=>{
+    if(a.textContent==='成绩查询') a.style.color='#8a2020';
+  });
+  sb("错误：账号状态 已注销。剩余查询次数 0。");
+  saveState();
+  try{ rebuild(); }catch(e){}   // 档案室立刻长出档案14：不必切页/刷新才看到自己那条
+}
 
-    var ok = true;
-    if (!name) { nameErr.classList.add('show'); ok = false; }
-    if (!cls) { classErr.classList.add('show'); ok = false; }
-    if (!ok) return;
+/* ============ 查分 ============ */
+async function query(){
+  const raw = $("nm").value.trim();
+  if(!raw){ $("h1").style.display="block"; $("h1").textContent="· 请先输入姓名。"; return; }
+  $("h1").style.display="none";
+  sb("正在向 10.18.3.9 发送请求 …");
 
-    var clsNorm = normClass(cls);
-    queryCount++;
+  /* —— 彩蛋分支 —— */
+  if(EGG[raw]){
+    const e = EGG[raw];
+    $("nm").disabled = true;
+    $("tail").textContent = e.sid.slice(4);
+    $("whoami").textContent = raw;
+    document.querySelectorAll('#c1 .btn').forEach(b=>{ if(b.textContent.trim()==='查 询') b.style.display='none'; });
+    /* ① 一秒：一模一样的正常成绩页 */
+    $("flNm").textContent = raw;  $("flSid").textContent = e.sid;
+    $("flTs").textContent = now();
+    $("flC").textContent = e.sc[0]; $("flM").textContent = e.sc[1];
+    $("flE").textContent = e.sc[2]; $("flP").textContent = e.sc[3];
+    $("flT").textContent = e.sum;   $("flR").textContent = e.rank;
+    /* ★ 状态先落地，叙事后播放：此刻就已注销+禁用入口+落盘，
+       后面不管玩家狂点/切走/关页，都改不回来 */
+    taint(raw);   // 落盘+禁用入口 已在此刻完成
+    $("flash").style.display="block";
+    sb("HTTP 200　已返回成绩单　3632 字节");
+    await new Promise(r=>setTimeout(r, window.__OV_FAST__?0:1000));
+    /* ② 黑屏 0.5 秒 */
+    $("flash").style.display="none";
+    $("black").classList.add("on");
+    sb("连接被重置。");
+    await new Promise(r=>setTimeout(r, window.__OV_FAST__?0:500));
+    $("black").classList.remove("on");
+    /* ③ 暗红 + ???（taint 已在白屏前调用，这里只补状态栏与叙事） */
+    sb("错误 0x00000018：该成绩单已被读取，读取人 = 你。");
+    await overlay([
+      e.id+"　"+raw+"　初二(18)班",
+      "语文 ?　数学 ?　英语 ?　物理 ?　总分 ???　班名 "+e.rank,
+      "",
+      e.line1, e.line2
+    ], "lock");
+    await overlay([
+      "这张成绩单没有被删掉。",
+      "它只是挂在服务器上，",
+      "等下一个同班的人来点开。",
+      "",
+      "点开的人，会继承它的剩余读取次数。",
+      "",
+      "剩余可读取次数：0"
+    ], 3200);
+    rebuild();
+    go("c2");
+    return;
+  }
 
-    var isShen = (name === '沈梦玮');
-    var isFangJiang = (name === '方蒋淇');
-    var isFangQi = (name === '方琦' && clsNorm === '初二(18)班');
-    var isArchive = (cls === '档案室');
+  /* —— 正常分支：0 分 + 作死按钮 —— */
+  if(raw === R13){
+    /* 🅱 第一次和所有人一样是 0 分。玩家以为又是故障——但钥匙在这一步已经发出去了 */
+    $("whoami").textContent = R13;
+    $("tail").textContent = "20240309";
+    $("h1").style.display="block";
+    $("h1").innerHTML = '方琦　初二(18)班　考号 20240309<br>'
+      + '<table class="score" style="margin-top:6px"><tr><th>语文</th><th>数学</th><th>英语</th><th>物理</th><th>总分</th><th>班名</th></tr>'
+      + '<tr><td>0</td><td>0</td><td>0</td><td>0</td><td class="q">0</td><td>41/41</td></tr></table>'
+      + '<span style="color:var(--graytxt)">系统提示：查询结果为 0 分属正常现象，请勿反复刷新。</span><br>'
+      + '<button class="btn ask" onclick="peek(\'方琦\')">这一份有原卷　点这里调阅 ›</button>';
+    sb("已返回。班名 41/41 —— 全班最后一个查分的人。本次查询已计入额度。");
+    return;
+  }
+  $("whoami").textContent = raw;
+  $("tail").textContent = "（本次）";
+  $("h1").style.display="block";
+  $("h1").innerHTML = raw + '　初二(18)班<br>'
+    + '<table class="score" style="margin-top:6px"><tr><th>语文</th><th>数学</th><th>英语</th><th>物理</th><th>总分</th><th>班名</th></tr>'
+    + '<tr><td>0</td><td>0</td><td>0</td><td>0</td><td class="q">0</td><td>--</td></tr></table>'
+    + '<span style="color:var(--graytxt)">系统提示：查询结果为 0 分属正常现象，请勿反复刷新。</span><br>'
+    + '<button class="btn ask" onclick="peek(\'' + esc(raw).replace(/'/g,"\\'") + '\')">查出来是 0 分？　点这里核对原卷 ›</button>';
+  sb("已返回。注意：本次查询已计入你的 1 次额度。");
+}
 
-    queryBtn.disabled = true;
+async function peek(who){
+  /* 方琦专属：0 分是外壳，原卷才是真的。
+     41人/41个0/他是第41个 —— 核心设定在玩家第一步就埋进去 */
+  if(who === R13){
+    sb("正在调取归档原卷 … 同班权限校验通过");
+    await overlay(["正在调阅 方琦 的归档原卷 …","","状态：已归档，只读。",
+      "归档时间：2024-03-09 21:47:02","调阅人：你（初二(18)班 · 同班）","","原卷已调出。"],3400);
+    await overlay(["语文 61　数学 38　英语 44　物理 21",
+      "总分 <b class='rr'>164</b>　班名 41/41","",
+      "全班 41 个人，系统手里正好 41 个 0，按查分的先后一个一个发。",
+      "第 1 个查的领走第 1 个 0，第 2 个领第 2 个 …",
+      "轮到他的时候，0 已经发完了。","",
+      "<b class='rr'>所以系统只能给他真分，然后再把这一屏涂成 0。</b>","",
+      "你手上这份是归档副本。原件在回收站，档案 13。","",
+      "还有一件事：他那份复核申请，复核人那一栏空着。","系统在等同班的人来补签。","",
+      "（这个弹窗不会自己消失。）"], "lock");
+    $("h1").style.display="block";
+    $("h1").innerHTML = '方琦　初二(18)班　考号 20240309<br>'
+      + '<table class="score" style="margin-top:6px"><tr><th>语文</th><th>数学</th><th>英语</th><th>物理</th><th>总分</th><th>班名</th></tr>'
+      + '<tr><td>61</td><td>38</td><td>44</td><td>21</td><td style="color:var(--red);font-weight:700">164</td><td>41/41</td></tr></table>'
+      + '<span style="color:var(--graytxt)">归档副本（只读）。原件位置：档案室 → 系统回收站。</span>';
+    sb("原卷已调阅。档案室 ZERO-13 已解锁。");
+    return;
+  }
+  sb("正在调取答题卡扫描件 … 1 / 1 页");
+  await overlay(["正在核对 "+who+" 的答题卡…","","答题卡扫描件：1 / 1 页",
+    "识别到的姓名：<b>"+who+"</b>","识别到的笔迹：<b>与本人不符</b>"],3400);
+  await overlay(["再核对一次。","","识别到的姓名：<b>"+who+"</b>",
+    "识别到的笔迹：<b>方琦</b>","","两份答卷，同一个人的字。",
+    "系统不知道该把分给谁。","所以它给了 0。","",
+    "—— 这不是 Bug，这是第 41 条的写法。"], "lock");
+  sb("核对完成。本次查询额度已用尽。");
+  go("c2");
+}
 
-    if (isFangQi) {
-      loadText.textContent = '正在读取加密档案…';
-    } else if (isArchive) {
-      loadText.textContent = '正在验证访问权限…';
-    } else {
-      loadText.textContent = '正在连接成绩服务器…';
+/* ============ 档案室 ============ */
+const BASE = [
+  ["01","2022-09-04","（姓名已不可读）","考号 20220904　首次登录。他查完分，没关页面，直接走了。",1,""],
+  ["02","2022-11-13","（姓名已不可读）","备注：主动截图留证。截图文件还在，大小 0 KB。",1,""],
+  ["03","2023-01-08","（姓名已不可读）","查询 1 次。退出 0 次。",1,""],
+  ["04","2023-03-22","（姓名已不可读）","最后操作：把查分链接发给了 3 个人。3 个人都打开了。",1,""],
+  ["05","2023-05-30","（姓名已不可读）","复核额度：1 次 → 未使用 → 随账号一并回收。",1,""],
+  ["06","2023-07-11","（姓名已不可读）","留过一句留言，转码失败。只看得清四个字：「别自己查」",1,""],
+  ["07","2023-04-17","沈梦玮","考号 20230417　班名 18/41　总分 363　他把查分截图删了 7 次。第 8 次没删成，系统替他存着。<br><b style='color:#8a4a4a'>最后操作：用自己的额度，替同班一个姓方的人查了一次分。</b>",0,"已读取"],
+  ["08","2023-10-15","（复核申请人 · 姓名已抹除）","考号 20231015　提交复核 1 次 → 不予变更 → 00:03:58 后注销。<b style='color:#8a4a4a'>第一个走完整套流程的人。</b>",0,"不予变更"],
+  ["09","2023-08-21","方蒋淇","考号 20230821　班名 18/41　总分 364　备注：与档案 13 同姓，非亲属。他查完自己的，又替别人查了一次。",0,"已读取"]
+];
+const HIDDEN = [
+  ["10","2023-12-06","（姓名已不可读）","考号 20231206　无查询记录。账号在被人使用前就已注销。",1,""],
+  ["11","2024-01-19","（姓名已不可读）","考号 20240119　仅一次操作：打开回收站，访问码输错 2 次，然后关了。",1,""],
+  ["12","2024-02-25","（姓名已不可读）","考号 20240225　仅一次操作：打开回收站，访问码输错 4 次。<b style='color:#8a4a4a'>第 4 次之后，这条记录改由系统代写。</b>",1,"系统代写"]
+];
+function card(a){
+  const [id,d,nm,mt,g,flag]=a;
+  return '<div class="rec '+(g?"ghostc":"")+(nm===R13?" dead":"")+'">'
+    + (flag?'<span class="flag">'+flag+'</span>':'')
+    + '<div class="rid">档案 '+id+'　/　注销 '+d+'</div>'
+    + '<div class="rnm">'+nm+'</div>'
+    + '<div class="rmt">'+mt+'</div></div>';
+}
+function rebuild(){
+  let h = BASE.map(card).join("");
+  if(tainted){
+    h += HIDDEN.map(card).join("");
+    h += card(["13","2024-03-09 21:47:02",R13,
+      "考号 20240309　班名 41/41　总分 164　复核 1 次 → 不予变更 → 00:04:11 后注销。<br>"
+      + "<b style='color:#8a4a4a'>他的复核卷没人签过字。系统在等一个同班的人来补签。</b>","0","不予变更"]);
+    h += card(["14",now().slice(0,16),
+      (SIGNED_OUT_NAME === 'signout') ? '<span style="color:#8a2020">主动申请注销</span>' : me(),
+      "考号 "+today().replace(/-/g,'')+"　班名 41/41　总分 ???　状态：<b style='color:var(--warn)'>正在阅读本页</b><br>"
+      + "<span style='color:#8a4a4a'>这条记录在你点开它的那一刻生成。它不会等你关掉浏览器。</span>","0","正在写入"]);
+  } else {
+    h += '<div class="rec ghostc"><div class="rid">档案 10 ~ 12</div>'
+       + '<div class="rnm">权限不足</div>'
+       + '<div class="rmt">3 条已加密，1 条已损坏。学号就是他查分的日期。先回首页，把第 13 号查出来。</div></div>'
+       + '<div class="rec ghostc"><span class="flag">已上锁</span><div class="rid">档案 13</div>'
+       + '<div class="rnm">权限不足</div>'
+       + '<div class="rmt">这份是他自己锁的。他知道会有人来找。</div></div>';
+  }
+  $("list").innerHTML = h;
+  if(SIGNED_OUT_NAME){ /* 右键后果：姓名栏被改写 */ }
+  $("pg").style.width = (tainted?100:69) + "%";
+  sb(tainted ? "已加载 13 / 13 条。" : "已加载 9 / 13 条。等待确认公告 …");
+}
+/* ============ ② 持久化：关掉重开，他还在 ============ */
+const LS = "FANG218_TAINT"; const LSV = "FANG218_V";
+function saveState(){
+  try{
+    localStorage.setItem(LSV, "2");   // 版本戳：让刷新后的页面知道"上一轮跑到过污化"
+    localStorage.setItem(LS, JSON.stringify({
+      tainted:tainted, tries:tries, at:now(), ua:navigator.userAgent.slice(0,60)
+    }));
+  }catch(e){/* 隐私模式下写不进去就算了，本轮仍然生效 */}
+}
+function loadState(){
+  try{ if(!localStorage.getItem(LSV)) return null;
+    const o = JSON.parse(localStorage.getItem(LS)||"null");
+    if(o && o.tainted){ tainted = true; tries = o.tries||0; return o; }
+  }catch(e){}
+  return null;
+}
+function applyPersisted(o){
+  document.body.dataset.st = "tainted";
+    if(o && o.signedOut){ SIGNED_OUT_NAME = "signout"; tainted = true; document.body.classList.add("tainted"); document.body.dataset.st="tainted"; tries = 0; }
+    try{ if(localStorage.getItem("FANG218_SIGNOUT")){ SIGNED_OUT_NAME = "signout"; tainted = true; document.body.classList.add("tainted"); document.body.dataset.st="tainted"; tries = 0; } }catch(e){}
+  document.body.classList.add("tainted");
+  document.body.dataset.st = "tainted";
+  document.title = "查询失败 · 初二(18)班";
+  const a=$("acc"); a.value=""; a.placeholder="失效"; a.disabled=true;
+  const p=document.querySelector('.acc .btn.pri'); if(p) p.style.display="none";
+  $("accRule").innerHTML = '<span class="r">访问码已于 20240315 那天失效。</span>回收站不接收已注销账号的请求。<br>'
+    + '<span class="r">你不在 41 人名单里。你从来就不在。</span><br>'
+    + '<span style="color:#8a4a4a">上次会话在 '+o.at+' 断在这里。这次接上了。</span>';
+  $("h2").style.display="block";
+  $("h2").innerHTML='<span class="r">· 该入口已关闭。</span>';
+  $("pg").style.width="100%";
+  $("c2sub").textContent="共 13 条 · 已加载 13 条 · 你那条还在";
+  sb("会话已恢复。账号状态：已注销。剩余查询次数 0。");
+}
+
+/* ③ 复位键：藏在页脚版本号里，连点 5 次 = 按一次返回键；污化后第 5 次变成"清空" */
+let verHits = 0, verTimer = null, verLock = false, SIGNED_OUT = false;
+function pokeVersion(){
+  if(verLock) return;                                  // 复位动画中，整段吞掉
+  verHits++;
+  clearTimeout(verTimer);
+  verTimer = setTimeout(()=>{ verHits = 0; }, 1800);   // 手慢了就重新数
+  sb("版本校验 … " + verHits + " / 5");
+  if(verHits < 5) return;
+  verHits = 0;
+  clearTimeout(verTimer);
+  if(!tainted){
+    // 等价于点一次右下角「返回」——给摸不到热区的手机用户一条明路
+    sb("调试入口已调出：等价于按一次「返回」。");
+    $("back").click();
+    return;
+  }
+  // 污化态下：这是唯一的真后门，但它是有代价的
+  verLock = true;           // 复位仪式期间锁死，防连点重入
+  Promise.resolve(wipe()).then(()=>{ verLock = false; });
+}
+async function wipe(){
+  let choice = null;
+  try{ localStorage.removeItem(LS); localStorage.removeItem(LSV); localStorage.removeItem("FANG218_SIGNOUT"); }catch(e){}
+  document.body.classList.add("glitch");
+  $("sb").classList.add("wiped");
+  sb("正在清除本地记录 …");
+  // 这扇窗是 lock：不点「确 定」就不许复位。仪式走完，状态才落地。
+  choice = await talk("本地记录已清除。",
+       "清掉的是你浏览器里那一份。\n系统那一份清不掉。\n\n左边那颗：只清本机，档案 14 保留「正在阅读本页」。\n右边那颗：清完顺手写上「主动申请注销」。\n\n两颗都写着「确 定」。\n——老 IE 的确认框，本来也没有第三个答案。",null,{dual:true});
+  SIGNED_OUT = (choice === "signout") || (overlay._dual === "signout");
+  setTimeout(()=>{
+    document.body.classList.remove("glitch");
+    $("sb").classList.remove("wiped");
+    tainted = false; tries = 0;
+    document.body.classList.remove("tainted");
+    delete document.body.dataset.st;
+    document.body.style.filter = "";
+    document.title = "初二(18)班期中成绩查询";
+    const a=$("acc"); a.disabled=false; a.placeholder="4 位数字（月日）";
+    const p=document.querySelector('.acc .btn.pri'); if(p) p.style.display="";
+    $("accRule").innerHTML = '三位注销者的学号就是他们的查分日期。最后消失的那一位，日期就是访问码。';
+    $("h2").style.display="none";
+    $("c2sub").textContent="共 13 条 · 已加载 9 条";
+    if(SIGNED_OUT){
+      try{ localStorage.setItem(LSV,"2");
+           localStorage.setItem(LS, JSON.stringify({tainted:true, tries:0, at:now(), signedOut:true, ua:"wipe/signout"}));
+           localStorage.setItem("FANG218_SIGNOUT", now());
+         }catch(e){}
+      tainted = true; document.body.classList.add("tainted"); document.body.dataset.st="tainted";
+      SIGNED_OUT_NAME = 'signout';
+           /* SIGNOUT 已在上方同一 try 块写入 */
     }
+    try{ rebuild(); }catch(e){}
+    go("c1");
+    sb(SIGNED_OUT ? "已复位，并已代你提交注销申请。档案 14 姓名栏：主动申请注销。本地 0 字节，系统那一份 1 字节。"
+                  : "已复位。本地记录 0 字节。 —— 但档案 14 还写着「正在阅读本页」。");
+  },900);
+}
+["verBtn","verBtn2"].forEach(id=>{
+  const el=$(id); if(el) el.addEventListener("click",pokeVersion);
+});
 
-    showPage('loading');
 
-    loadFill.style.animation = 'none';
-    loadFill.offsetHeight;
-    loadFill.style.animation = 'loadfill 2s linear forwards';
+rebuild();
 
-    if (loadingTimer) clearTimeout(loadingTimer);
-    loadingTimer = setTimeout(function() {
-      loadingTimer = null;
-
-      // ---- 档案室入口 ----
-      if (isArchive) {
-        showPage('archive');
-        queryBtn.disabled = false;
-        return;
-      }
-
-      // ---- 正常成绩：沈梦玮 ----
-      if (isShen) {
-        rName.textContent = name;
-        rClass.textContent = cls;
-        renderScores(scoresShen);
-        showPage('result');
-
-        sysWarn.classList.remove('show');
-        hintLink.innerHTML = '成绩无误 · 如有疑问请联系班主任';
-        hintLink.style.cursor = 'default';
-        reviewBtn.style.display = 'block';
-        clueBox.classList.remove('show');
-
-        queryBtn.disabled = false;
-        return;
-      }
-
-      // ---- 正常成绩：方蒋淇 ----
-      if (isFangJiang) {
-        rName.textContent = name;
-        rClass.textContent = cls;
-        renderScores(scoresFang);
-        showPage('result');
-
-        sysWarn.classList.remove('show');
-        hintLink.innerHTML = '成绩无误 · 如有疑问请联系班主任';
-        hintLink.style.cursor = 'default';
-        reviewBtn.style.display = 'block';
-        clueBox.classList.remove('show');
-
-        queryBtn.disabled = false;
-        return;
-      }
-
-      // ---- 方琦特殊成绩 ----
-      if (isFangQi) {
-        unlockedFangQi = true;
-        rName.textContent = name;
-        rClass.textContent = cls;
-        renderZeroScores();
-        showPage('result');
-
-        sysWarn.innerHTML = '<b>系统提示：</b>已识别档案 ZERO-13。该档案状态为「已封存」。请前往 <b>档案室</b> 查看完整记录。';
-        sysWarn.classList.add('show');
-
-        hintLink.innerHTML = '档案 ZERO-13 已识别 · <b>点我查看详情</b>';
-        hintLink.style.cursor = 'pointer';
-        reviewBtn.style.display = 'none';
-        clueBox.classList.remove('show');
-
-        queryBtn.disabled = false;
-        return;
-      }
-
-      // ---- 普通查分（零分）----
-      rName.textContent = name;
-      rClass.textContent = cls;
-      renderZeroScores();
-      showPage('result');
-
-      hintLink.innerHTML = '查出来为0分？<b>点我查看</b>';
-      hintLink.style.cursor = 'pointer';
-      reviewBtn.style.display = 'block';
-      clueBox.classList.remove('show');
-
-      if (queryCount === 2) {
-        sysWarn.innerHTML = '<b>系统提示：</b>检测到缓存残留数据……<br>' +
-          '姓名片段：<b>方……琦……</b><br>' +
-          '班级片段：<b>初二……18……</b><br>' +
-          '数据已损坏，无法完整恢复。';
-        sysWarn.classList.add('show');
-      } else if (queryCount === 3) {
-        sysWarn.innerHTML = '<b>系统提示：</b>检测到多次零分查询。已注销档案可在「档案室」查看。<br>' +
-          '进入方式：班级输入 <b>档案室</b>。';
-        sysWarn.classList.add('show');
-      } else if (queryCount >= 4) {
-        sysWarn.innerHTML = '<b>系统警告：</b>频繁查询异常。请前往档案室查看ZERO系列记录。<br>' +
-          '线索已缓存：<b>方琦 · 初二(18)班</b>';
-        sysWarn.classList.add('show');
-      } else {
-        sysWarn.classList.remove('show');
-      }
-
-      queryBtn.disabled = false;
-    }, 2000);
+/* ============ 开机序列：打开就弹，三屏全必须点「确 定」 ============
+   老 IE 内网的脾气——公告不点掉不给用。这三屏不是写给玩家的说明书，
+   每一句后面都埋着后面要用到的规则（1次额度 / 0分正常 / 复核只查三项 / 右下角返回）。 */
+async function bootSeq(){
+  if(window.__BOOTED__) return;            // 幂等
+  window.__BOOTED__ = 1;
+  await new Promise(r=>setTimeout(r, window.__OV_FAST__?0:700));
+  if(sessionStorage.getItem("FANG218_BOOT")==="1"){
+    await talk("系统提示：","本次会话已记录。\n剩余查询次数："+(tainted?0:1)+" 次。","lock");
+    return;
   }
-
-  // ========== 成绩复核 ==========
-  reviewBtn.addEventListener('click', function() {
-    sysWarn.innerHTML = '<b>复核申请已提交。</b><br>' +
-      '系统检测到该查询与已注销档案 ZERO-13 存在关联。<br>' +
-      '请前往 <b>档案室</b> 查看详情。';
-    sysWarn.classList.add('show');
-  });
-
-  // ========== 小字线索 ==========
-  hintLink.addEventListener('click', function() {
-    if (hintLink.style.cursor === 'default') return;
-
-    clueBox.classList.toggle('show');
-
-    if (clueBox.classList.contains('show')) {
-      if (unlockedFangQi) {
-        clueContent.innerHTML =
-          '档案 ZERO-13（方琦）已解锁。<br>' +
-          '前往 <b>档案室</b> 查看完整记录，获取回收站访问码。';
-      } else if (hasVisitedArchive) {
-        clueContent.innerHTML =
-          '系统检测到缓存异常。<br>' +
-          '存在 13 条已注销档案（ZERO-01 ~ ZERO-13）。<br><br>' +
-          '最后一条档案 <b>ZERO-13</b> 处于加密状态。<br>' +
-          '解锁条件：在首页输入该生 <b>姓名</b> 与 <b>班级</b> 查分。<br><br>' +
-          '已知线索：<br>' +
-          '· ZERO-07 档案：该生姓名首字为「<b>方</b>」<br>' +
-          '· ZERO-09 档案：该生姓名为「<b>方琦</b>」，班级为「<b>初二18班</b>」<br>' +
-          '· 该生为「<b>最后消失者</b>」';
-      } else {
-        clueContent.innerHTML =
-          '系统检测到缓存异常。<br>' +
-          '存在 13 条已注销档案。<br><br>' +
-          '访问档案室需要输入特定班级名称。<br>' +
-          '提示：<strong>档案室</strong>';
-      }
-    }
-  });
-
-  // ========== 档案卡展开 ==========
-  window.toggleCard = function(headEl) {
-    var body = headEl.nextElementSibling;
-    body.classList.toggle('show');
-  };
-
-  // ========== 回收站入口 ==========
-  recycleLink.addEventListener('click', function() {
-    pwInput.value = '';
-    pwErr.classList.remove('show');
-    showPage('password');
-    setTimeout(function() { pwInput.focus(); }, 100);
-  });
-
-  // ========== 密码验证 ==========
-  pwSubmit.addEventListener('click', checkPassword);
-  pwInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') checkPassword();
-  });
-
-  function checkPassword() {
-    var val = pwInput.value.trim();
-    if (val === '0309') {
-      pwErr.classList.remove('show');
-      logStep = 0;
-      logBox.textContent = '';
-      showPage('recycle');
-      renderLog();
-    } else {
-      pwErr.textContent = '访问码错误';
-      pwErr.classList.add('show');
-      pwInput.value = '';
-      pwInput.focus();
-    }
-  }
-
-  // ========== 回收站日志 ==========
-  var logs = [
-    { text: '回收站中仅有 1 条记录。', cls: '' },
-    { text: '记录ID：ZERO-13', cls: '' },
-    { text: '姓名：方琦', cls: '' },
-    { text: '班级：初二(18)班', cls: '' },
-    { text: '最后登录：2024-03-09 23:47:32', cls: '' },
-    { text: '最后操作：查询期中考试成绩', cls: '' },
-    { text: '查询结果：0分', cls: '' },
-    { text: '', cls: '' },
-    { text: '用户反馈 (23:48:01)：这不是我的成绩。', cls: '' },
-    { text: '用户反馈 (23:49:15)：你们把我的成绩弄哪去了？', cls: '' },
-    { text: '用户反馈 (23:51:30)：我看到别人也在查，都是0分。', cls: '' },
-    { text: '用户反馈 (23:53:02)：是不是系统有问题？', cls: '' },
-    { text: '用户反馈 (23:55:44)：喂？有人吗？', cls: '' },
-    { text: '', cls: '' },
-    { text: '用户反馈 (23:57:11)：我看到有人站在我房间门口。', cls: 'warn' },
-    { text: '用户反馈 (23:58:30)：那个人……长得和我一样。', cls: 'warn' },
-    { text: '用户反馈 (23:59:01)：他在笑。', cls: 'warn' },
-    { text: '', cls: '' },
-    { text: '系统日志 (23:59:30)：检测到异常登录。', cls: 'warn' },
-    { text: '登录设备：你当前的设备。', cls: 'warn' },
-    { text: '登录IP：你当前的IP。', cls: 'warn' },
-    { text: '', cls: '' },
-    { text: '系统日志 (23:59:45)：检测到用户 ZERO-13 正在尝试删除本记录。', cls: 'warn' },
-    { text: '系统日志 (23:59:50)：删除失败。记录已锁定。', cls: 'warn' },
-    { text: '系统日志 (23:59:55)：用户 ZERO-13 上传了一张图片。', cls: 'warn' },
-    { text: '', cls: '' },
-    { text: '[图片已损坏]', cls: 'dark' },
-    { text: '', cls: '' },
-    { text: '系统日志 (00:00:00)：用户 ZERO-13 在线。', cls: 'warn' },
-    { text: '……', cls: 'dark' },
-    { text: '……', cls: 'dark' },
-    { text: '他在你后面。', cls: 'warn' }
-  ];
-
-  function renderLog() {
-    var entry = logs[logStep];
-    var line = document.createElement('div');
-    line.textContent = entry.text || '\u00A0';
-    if (entry.cls) line.className = entry.cls;
-    logBox.appendChild(line);
-
-    logBox.scrollTop = logBox.scrollHeight;
-    logStep++;
-
-    if (logStep >= logs.length) {
-      nextLogBtn.textContent = '……';
-      nextLogBtn.disabled = true;
-      setTimeout(triggerJumpscare, 800);
-    }
-  }
-
-  nextLogBtn.addEventListener('click', function() {
-    if (logStep < logs.length) {
-      renderLog();
-    }
-  });
-
-  // ========== 突脸 ==========
-  function triggerJumpscare() {
-    jumpscare.classList.add('show');
-    appEl.classList.add('shake');
-    document.body.classList.add('shake');
-
-    try {
-      var ctx = new (window.AudioContext || window.webkitAudioContext)();
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.value = 80;
-      gain.gain.value = 0.15;
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 2);
-      osc.stop(ctx.currentTime + 2.5);
-    } catch (e) {}
-
-    setTimeout(function() {
-      jumpscare.classList.remove('show');
-      appEl.classList.remove('shake');
-      document.body.classList.remove('shake');
-      showPage('ending');
-    }, 2500);
-  }
-
-  // ========== 返回按钮 ==========
-  backBtn.addEventListener('click', function() {
-    showPage('home');
-    sysWarn.classList.remove('show');
-    hintLink.innerHTML = '查出来为0分？<b>点我查看</b>';
-    hintLink.style.cursor = 'pointer';
-    reviewBtn.style.display = 'none';
-    clueBox.classList.remove('show');
-  });
-
-  archiveBackBtn.addEventListener('click', function() {
-    showPage('home');
-  });
-
-  pwBackBtn.addEventListener('click', function() {
-    showPage('archive');
-  });
-
-  // ========== 重置 ==========
-  resetBtn.addEventListener('click', function() {
-    unlockedFangQi = false;
-    queryCount = 0;
-    logStep = 0;
-    hasVisitedArchive = false;
-    logBox.textContent = '';
-    nextLogBtn.textContent = '下一条 →';
-    nextLogBtn.disabled = false;
-    nameInput.value = '';
-    classInput.value = '';
-    sysWarn.classList.remove('show');
-    hintLink.innerHTML = '查出来为0分？<b>点我查看</b>';
-    hintLink.style.cursor = 'pointer';
-    reviewBtn.style.display = 'none';
-    clueBox.classList.remove('show');
-    noticeBox.classList.remove('show');
-    noticeToggle.textContent = '📋 系统公告（点击展开）';
-    zero13tag.textContent = '加密';
-    zero13tag.classList.add('locked');
-    zero13locked.style.display = 'block';
-    zero13unlocked.style.display = 'none';
-    document.querySelectorAll('.archive-card-body').forEach(function(b) {
-      b.classList.remove('show');
-    });
-    showPage('home');
-  });
-
-  // ========== 档案室动态解锁 ==========
-  var origShowPage = showPage;
-  showPage = function(key) {
-    origShowPage(key);
-
-    if (key === 'archive') {
-      if (unlockedFangQi) {
-        zero13tag.textContent = '已解锁';
-        zero13tag.classList.remove('locked');
-        zero13locked.style.display = 'none';
-        zero13unlocked.style.display = 'block';
-      } else {
-        zero13tag.textContent = '加密';
-        zero13tag.classList.add('locked');
-        zero13locked.style.display = 'block';
-        zero13unlocked.style.display = 'none';
-      }
-    }
-  };
-
-  // ========== 输入监听 ==========
-  nameInput.addEventListener('input', function() {
-    nameErr.classList.remove('show');
-  });
-  classInput.addEventListener('input', function() {
-    classErr.classList.remove('show');
-  });
-
-  nameInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') { e.preventDefault(); classInput.focus(); }
-  });
-  classInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') { e.preventDefault(); doQuery(); }
-  });
-
-  queryBtn.addEventListener('click', doQuery);
-
-  // ========== 控制台提示 ==========
-  console.log('%c 期中考试查分系统 v3.1.2 ', 'background:#3366cc;color:#fff;padding:4px 10px;font-weight:bold;');
-  console.log('提示 1：查分后点击成绩页下方小字。');
-  console.log('提示 2：多次查分可看到缓存残留数据（方……琦……）。');
-  console.log('提示 3：班级输入「档案室」可进入档案室。');
-  console.log('提示 4：查看 ZERO-07 和 ZERO-09 档案，拼出姓名和班级。');
-  console.log('提示 5：在首页输入拼出的信息查分，解锁 ZERO-13。');
-  console.log('提示 6：ZERO-13 档案中有回收站访问码。');
-  console.log('%c 最终答案：方琦 + 初二(18)班 → 档案室 → 访问码 0309', 'color:#888;font-size:11px;');
-
-  // ========== 初始化 ==========
-  renderZeroScores();
-  showPage('home');
-
+  sessionStorage.setItem("FANG218_BOOT","1");
+  await overlay(["××市第三十八中学 校园信息平台","","当前时间 "+now(),
+    "你已通过内网认证。身份：初二(18)班 学生。",
+    "本次会话剩余查询次数：<b>1</b> 次。",
+    "第 2 次起，系统按「代他人查询」计。"],
+    "lock");
+  await overlay(["公告 [1/1]","",
+    "本次期中考试已于 2024-03-09 21:50 全部发布完毕。",
+    "① 成绩以本系统显示为准。",
+    "② 查询结果为 0 分，属正常现象，请勿重复提交。",
+    "③ 历史档案共 13 条。回收站访问码已随最后一位同学一并失效。",
+    "④ 复核申请每人 1 次，提交后不可撤回，且<b>只核查漏统、登分、漏评三项</b>；",
+    "　 评分标准是否恰当，不在核查范围内。"],
+    "lock");
+  await overlay(["操作说明","",
+    "· 输入姓名后按回车，或点「查 询」。",
+    "· 页头「历史档案」可查看本届已归档记录（只读）。",
+    "· 页面右下角有一个「返回」键。它平时没什么用。",
+    "　 （手机上摸不到的话：连点页脚版本号 5 次。）",
+    "· 本页不保存 cookie。关掉之后，你在不在名单里，以系统那边的记录为准。"],
+    "lock");
+  sb("就绪。等待输入姓名 …");
+}
+(function restore(){
+  const o = loadState();
+  if(!o) return;
+  applyPersisted(o);
+  rebuild();
+  rebuild();
+  setTimeout(async ()=>{
+    await bootSeq();                       // 先把三屏公告点完，再把你送回你那条
+    go("c2");
+    talk("欢迎回来。","你上次没有关掉它。\n它替你关的。\n\n档案 14 还是你的，日期还是今天——\n不管今天是几号。","lock");
+  }, 240);
+  return;                                  // 接管启动流程，不再走下面的 bootSeq()
 })();
+if(!tainted) bootSeq();
+
+/* ============ 回收站 ============ */
+function unlock(){
+  if(tainted){ $("h2").style.display="block"; $("h2").innerHTML='<span class="r">· 该入口已失效。返回键还在，仅此而已。</span>'; return; }
+  const v = $("acc").value.replace(/\D/g,"");
+  tries++;
+  saveState();   // ← 关键：错码次数必须跨刷新活着，否则刷新就洗白
+  sb("校验访问码 … 第 "+tries+" 次");
+  if(v === "0309"){
+    $("h2").style.display="none";
+    $("r3").style.display="block";
+    $("tdy").textContent = now().slice(0,16);
+    $("sid14").textContent = today().replace(/-/g,'');
+    /* 没查过分就直接撬回收站：档案 14 的姓名栏还空着，但空着本身就是答案 */
+    if($("whoami").textContent === "（未填写）"){
+      $("me14").innerHTML = '<span style="color:#8a4a4a">（待写入 · 光标正在这一格里闪）</span>';
+      $("whoami").textContent = "（未填写）";
+      $("r14tip").innerHTML = '<b>系统规则第 4 条：</b>每人仅可提交 1 次复核申请。<br>'
+        + '第 13 号把那一次用掉了。剩下这一次还没人认领。<br>'
+        + '<span style="color:#8a4a4a">—— 你连自己叫什么都还没填，系统已经替你把格子留好了。</span><br>'
+        + '<span style="color:var(--graytxt)">（直接提交也行。姓名栏会用你刚才访问这台机器的时间填。）</span>';
+    } else {
+      $("me14").textContent = me();
+    }
+    (async()=>{
+      await say($("tty"),
+        "> 访问码 0309 接受。\n"
+      + "> 正在解封 档案 13 …\n"
+      + "> 已解封。1 项可读，2 项只读。\n"
+      + "> 顺带一提：这次解封动作，已经写进 档案 14。\n"
+      + "> 档案 14 的姓名栏，填的是你刚才输入的那个名字。\n"
+      + "> ……\n"
+      + "> 你还要继续往下看吗？（本提示不接受「否）\n",22);
+      $("tty").classList.remove("cur");
+      $("r3").style.display="block";
+      rebuild();
+      sb("回收站已解封。写入动作已完成，不可撤销。");
+    })();
+  } else if(tries >= 4){
+    $("h2").style.display="block";
+    $("h2").innerHTML = '<span class="r">· 第 4 次错误。访问码锁定。</span><br>'
+      + '档案 12 也停在第 4 次。<br>从那一行往后，它的记录是系统替他写的。<br>'
+      + '<span class="r">你这一条，刚开始写。</span>';
+    sb("第 4 次校验失败。正在为本次会话创建档案 …");
+    saveState();
+    taint("__lockout__");   // 状态立刻落地，弹窗只是化妆（狂点/切走都救不回）
+  } else {
+    $("h2").style.display="block";
+    $("h2").innerHTML = '· 访问码错误（第 '+tries+' / 4 次）。<br>'
+      + '<span style="color:var(--graytxt)">档案 12 输错过 3 次。第 4 次以后，他就不再是这条记录的主语了。</span>';
+    $("acc").value="";
+  }
+}
+function say(el,txt,speed){
+  return new Promise(res=>{
+    let i=0; el.textContent="";
+    sb("正在从服务器读取 …");
+    const t=setInterval(()=>{
+      el.textContent = txt.slice(0,++i);
+      if(i>=txt.length){clearInterval(t);res();}
+    },speed||24);
+  });
+}
+
+/* ============ 复核 ============ */
+async function commit(){
+  $("who2").textContent = me();
+  $("who3").textContent = me();
+  $("ts").textContent = now();
+  $("ts2").textContent = now();
+  go("c4");
+  sb("复核申请已提交。编号 FANG-218-041。"); saveState();
+  await overlay(["复核申请已提交。","","这是你的第 1 次，也是最后一次。","","受理中 …","预计办结：00:04:11"], 4200);
+  await overlay(["核查项 ①小题漏统：无异常","核查项 ②登分错误：无异常","核查项 ③漏评：无异常","","差异：0","结论：<span class='rr'>分数无误，不予变更。</span>",
+    "","本结论为终局。上一级受理单位：无。","","办结人（同班补签）：" + me() + "。"], "lock");
+  taint(R13);            // ← 原先漏了这一句：提交复核后访问码不锁、档案14不生成、刷新即洗白
+  setTimeout(()=>{
+    document.body.style.transition="filter 2.2s";
+    document.body.style.filter="blur(2.5px) brightness(.72)";
+    sb("办结。你已被列入 41/41。页面即将转为只读。");
+  },1500);
+}
+async function decline(){
+  await overlay(["「这个分数不是我的」","","已记录。","","但是答题卡上的字，是你的。",
+    "系统不接受口头否认，只接受 1 次书面复核。","","你刚才那一次，用在一个「不」字上了。"], "lock");
+  taint("__decline__");  // 与 commit 同一条收口：禁用访问码 / 长档案14 / 落盘 / rebuild
+  $("who2").textContent = me();
+  $("who3").textContent = "（申请人主动放弃 · 由系统代签）";
+  $("ts").textContent = now(); $("ts2").textContent = now();
+  go("c4");
+  sb("申请人放弃复核。办结人：系统代签。"); saveState(); rebuild();
+}
+
+/* ============ 返回键：平时就是个没用的「返回」，污化后变质 ============ */
+$("back").onclick = async ()=>{
+  if(!tainted){
+    if(stage<=1){ sb("已经是第一页了。"); await talk("已经是第一页了。","再往回就没有了。", true); return; }
+    go("c"+(stage-1)); return;
+  }
+  const OVERLAYS = [
+    ["正在返回上一页…","","历史记录：1 / 1 条。","没有上一页。","你打开的就是第一页。", "", "（这个弹窗不会自己消失。）"],
+    ["再试一次。","","浏览器历史已被回收站接管。","","已为你返回到：档案 14（你自己那一条）"],
+    ["返回","","这个键的作用，是把你送回你读完的最后一屏。","你读完的最后一屏，是你自己。","","……别再点了。"]
+  ];
+  OVERLAYS[0][3]=undefined; OVERLAYS[1][3]=3400; OVERLAYS[2][3]="lock";
+  const lines = OVERLAYS;
+
+  sb("返回请求被拒绝。原因：无上一页。（第 "+(tries+1)+" 次）");
+  await overlay(lines[Math.min(tries,2)], OVERLAYS[Math.min(tries,2)][3]);
+  tries++; saveState();
+  if(tries>=3){ rebuild(); go("c2"); sb("已为你定位到：档案 14。本地记录已写入，本次会话不可撤销。"); }
+};
+
+/* ============ 氛围：切走 / 控制台 / 关页 ============ */
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden){ document.title = "（1）初二(18)班 - 成绩查询"; sb("页面失去焦点。但会话仍在服务器上保持。"); }
+  else document.title = tainted ? "查询失败 · 初二(18)班" : "初二(18)班期中成绩查询";
+});
+window.addEventListener("beforeunload",e=>{
+  if(tainted){ e.preventDefault(); e.returnValue="确定要注销吗？注销后复核次数不返还。"; }
+});
+(function(){
+  const s=["%20%E6%9C%8D%E5%8A%A1%E7%AB%AF%E6%97%A5%E5%BF%97%EF%BC%9A%E6%9F%A5%E5%88%86%E6%88%90%E5%8A%9F%EF%BC%8C%E7%94%A8%E6%97%B6%204011ms",
+           "%20%E5%AE%A2%E6%88%B7%E7%AB%AF%EF%BC%9A%E4%BD%A0%E5%BC%80%E4%BA%86%E6%8E%A7%E5%88%B6%E5%8F%B0%E3%80%82%E8%BF%99%E4%B9%9F%E4%B8%8D%E6%98%AF%E7%BB%99%E4%BD%A0%E7%9C%8B%E7%9A%84%E3%80%82",
+           "%20%E2%80%94%E2%80%94%20FANG%20NO.218%20%C2%B7%20%E5%86%85%E7%BA%BF%206021"];
+  setTimeout(()=>{s.forEach(x=>console.log(decodeURIComponent(x)));},1200);
+})();
+/* 污化态：每 45 秒画面无声暗一下 */
+setInterval(()=>{
+  if(!tainted || document.hidden) return;
+  document.body.style.filter="brightness(.9)";
+  setTimeout(()=>{ if(!tainted) return; document.body.style.filter=""; },240);
+}, 38000 + Math.random()*9000);
 </script>
 </body>
 </html>
