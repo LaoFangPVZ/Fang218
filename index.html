@@ -187,6 +187,12 @@
   .score-table .total-row td {
     background: #fafcff;
     font-weight: bold;
+    font-size: 15px;
+  }
+
+  .score-table .total-row td:last-child {
+    color: #3366cc;
+    font-size: 18px;
   }
 
   .hint-link {
@@ -600,12 +606,12 @@
 
     <table class="score-table">
       <thead>
-        <tr><th>科目</th><th>分数</th></tr>
+        <tr><th>科目</th><th>分数 / 满分</th></tr>
       </thead>
       <tbody id="scoreBody"></tbody>
     </table>
 
-    <button class="btn btn-secondary" id="reviewBtn" style="margin-top:6px;">申请成绩复核</button>
+    <button class="btn btn-secondary" id="reviewBtn" style="margin-top:6px;display:none;">申请成绩复核</button>
 
     <div class="hint-link" id="hintLink">查出来为0分？<b>点我查看</b></div>
     <div class="clue-box" id="clueBox">
@@ -863,6 +869,32 @@
 
   var subjects = ['语文','数学','英语','物理','道法','历史','地理','生物'];
 
+  // ========== 两套正常成绩数据 ==========
+  // 满分：语文130 数学130 英语120 物理100 道法50 历史50 地理100 生物100
+  // 沈梦玮：均衡偏文，语文英语较好，数理略低
+  var scoresShen = [
+    { subject: '语文', score: 114, full: 130 },
+    { subject: '数学', score: 109, full: 130 },
+    { subject: '英语', score: 105, full: 120 },
+    { subject: '物理', score: 82,  full: 100 },
+    { subject: '道法', score: 43,  full: 50 },
+    { subject: '历史', score: 44,  full: 50 },
+    { subject: '地理', score: 86,  full: 100 },
+    { subject: '生物', score: 88,  full: 100 }
+  ];
+
+  // 方蒋淇：偏理，数学物理较好，语文稍弱
+  var scoresFang = [
+    { subject: '语文', score: 106, full: 130 },
+    { subject: '数学', score: 118, full: 130 },
+    { subject: '英语', score: 103, full: 120 },
+    { subject: '物理', score: 91,  full: 100 },
+    { subject: '道法', score: 39,  full: 50 },
+    { subject: '历史', score: 40,  full: 50 },
+    { subject: '地理', score: 82,  full: 100 },
+    { subject: '生物', score: 81,  full: 100 }
+  ];
+
   // ========== 工具 ==========
   function showPage(key) {
     Object.keys(pages).forEach(function(k) {
@@ -882,19 +914,25 @@
   }
 
   // ========== 渲染成绩 ==========
-  function renderScores(mode) {
+  function renderScores(scoreArr) {
     var html = '';
-    if (mode === 'zero') {
-      subjects.forEach(function(s) {
-        html += '<tr><td>' + s + '</td><td>0</td></tr>';
-      });
-      html += '<tr class="total-row"><td>总分</td><td>0</td></tr>';
-    } else if (mode === 'locked') {
-      subjects.forEach(function(s) {
-        html += '<tr><td>' + s + '</td><td>???</td></tr>';
-      });
-      html += '<tr class="total-row"><td>总分</td><td>???</td></tr>';
-    }
+    var total = 0;
+    var fullTotal = 0;
+    scoreArr.forEach(function(item) {
+      html += '<tr><td>' + item.subject + '</td><td>' + item.score + ' / ' + item.full + '</td></tr>';
+      total += item.score;
+      fullTotal += item.full;
+    });
+    html += '<tr class="total-row"><td>总分</td><td>' + total + ' / ' + fullTotal + '</td></tr>';
+    scoreBody.innerHTML = html;
+  }
+
+  function renderZeroScores() {
+    var html = '';
+    subjects.forEach(function(s) {
+      html += '<tr><td>' + s + '</td><td>0</td></tr>';
+    });
+    html += '<tr class="total-row"><td>总分</td><td>0</td></tr>';
     scoreBody.innerHTML = html;
   }
 
@@ -920,6 +958,8 @@
     var clsNorm = normClass(cls);
     queryCount++;
 
+    var isShen = (name === '沈梦玮');
+    var isFangJiang = (name === '方蒋淇');
     var isFangQi = (name === '方琦' && clsNorm === '初二(18)班');
     var isArchive = (cls === '档案室');
 
@@ -950,34 +990,71 @@
         return;
       }
 
-      // ---- 方琦特殊成绩 ----
-      if (isFangQi) {
-        unlockedFangQi = true;
+      // ---- 正常成绩：沈梦玮 ----
+      if (isShen) {
         rName.textContent = name;
         rClass.textContent = cls;
-        renderScores('locked');
+        renderScores(scoresShen);
         showPage('result');
 
-        sysWarn.innerHTML = '<b>系统提示：</b>已识别档案 ZERO-13。该档案状态为「已封存」。请前往 <b>档案室</b> 查看完整记录。';
-        sysWarn.classList.add('show');
-
-        hintLink.innerHTML = '档案 ZERO-13 已识别 · <b>点我查看详情</b>';
+        sysWarn.classList.remove('show');
+        hintLink.innerHTML = '成绩无误 · 如有疑问请联系班主任';
+        hintLink.style.cursor = 'default';
+        reviewBtn.style.display = 'block';
         clueBox.classList.remove('show');
 
         queryBtn.disabled = false;
         return;
       }
 
-      // ---- 普通查分 ----
+      // ---- 正常成绩：方蒋淇 ----
+      if (isFangJiang) {
+        rName.textContent = name;
+        rClass.textContent = cls;
+        renderScores(scoresFang);
+        showPage('result');
+
+        sysWarn.classList.remove('show');
+        hintLink.innerHTML = '成绩无误 · 如有疑问请联系班主任';
+        hintLink.style.cursor = 'default';
+        reviewBtn.style.display = 'block';
+        clueBox.classList.remove('show');
+
+        queryBtn.disabled = false;
+        return;
+      }
+
+      // ---- 方琦特殊成绩 ----
+      if (isFangQi) {
+        unlockedFangQi = true;
+        rName.textContent = name;
+        rClass.textContent = cls;
+        renderZeroScores();
+        showPage('result');
+
+        sysWarn.innerHTML = '<b>系统提示：</b>已识别档案 ZERO-13。该档案状态为「已封存」。请前往 <b>档案室</b> 查看完整记录。';
+        sysWarn.classList.add('show');
+
+        hintLink.innerHTML = '档案 ZERO-13 已识别 · <b>点我查看详情</b>';
+        hintLink.style.cursor = 'pointer';
+        reviewBtn.style.display = 'none';
+        clueBox.classList.remove('show');
+
+        queryBtn.disabled = false;
+        return;
+      }
+
+      // ---- 普通查分（零分）----
       rName.textContent = name;
       rClass.textContent = cls;
-      renderScores('zero');
+      renderZeroScores();
       showPage('result');
 
       hintLink.innerHTML = '查出来为0分？<b>点我查看</b>';
+      hintLink.style.cursor = 'pointer';
+      reviewBtn.style.display = 'block';
       clueBox.classList.remove('show');
 
-      // 多次查分触发不同提示
       if (queryCount === 2) {
         sysWarn.innerHTML = '<b>系统提示：</b>检测到缓存残留数据……<br>' +
           '姓名片段：<b>方……琦……</b><br>' +
@@ -1010,6 +1087,8 @@
 
   // ========== 小字线索 ==========
   hintLink.addEventListener('click', function() {
+    if (hintLink.style.cursor === 'default') return;
+
     clueBox.classList.toggle('show');
 
     if (clueBox.classList.contains('show')) {
@@ -1165,6 +1244,8 @@
     showPage('home');
     sysWarn.classList.remove('show');
     hintLink.innerHTML = '查出来为0分？<b>点我查看</b>';
+    hintLink.style.cursor = 'pointer';
+    reviewBtn.style.display = 'none';
     clueBox.classList.remove('show');
   });
 
@@ -1189,6 +1270,8 @@
     classInput.value = '';
     sysWarn.classList.remove('show');
     hintLink.innerHTML = '查出来为0分？<b>点我查看</b>';
+    hintLink.style.cursor = 'pointer';
+    reviewBtn.style.display = 'none';
     clueBox.classList.remove('show');
     noticeBox.classList.remove('show');
     noticeToggle.textContent = '📋 系统公告（点击展开）';
@@ -1250,7 +1333,7 @@
   console.log('%c 最终答案：方琦 + 初二(18)班 → 档案室 → 访问码 0309', 'color:#888;font-size:11px;');
 
   // ========== 初始化 ==========
-  renderScores('zero');
+  renderZeroScores();
   showPage('home');
 
 })();
