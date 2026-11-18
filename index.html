@@ -237,6 +237,44 @@ body.tainted #back:hover::after{color:#8a2020}
   padding:0 7px;overflow:hidden;white-space:nowrap}
 body.tainted #sb{background:#ecdad7;color:#6a2020}
 #sb em{font-style:normal;color:var(--warn)}
+
+/* ---------- 结局：整站自毁后只剩竖排「再见」 ---------- */
+body.finale{background:#000 !important}
+body.finale *{visibility:hidden}
+body.finale #finaleBox,
+body.finale #finaleBox *{visibility:visible}
+#finaleBox{position:fixed;inset:0;z-index:99999;background:#000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:.12em;animation:finBg 2.6s ease both}
+#finaleBox .fw{writing-mode:vertical-rl;font-family:"SimSun",serif;
+  font-size:min(24vw,190px);line-height:1;color:#8a2020;
+  opacity:0;letter-spacing:.05em}
+#finaleBox .fw.a{animation:fwIn 2.2s ease .3s forwards}
+#finaleBox .fw.b{animation:fwIn 2.2s ease 1.5s forwards}
+@keyframes finBg{from{background:#0a0000}to{background:#000}}
+@keyframes fwIn{from{opacity:0;filter:blur(8px);transform:translateY(12px)}
+  to{opacity:.92;filter:blur(0);transform:translateY(0)}}
+/* 逐字抹除：每个字符一个 span，删一个淡一个 */
+.finch{transition:opacity .3s linear, filter .3s linear}
+.finch.gone{opacity:0;filter:blur(2px)}
+/* 结局镜像层：克隆出三份不可操控的界面，叠在最上层依次消失 */
+#finaleLayer{position:fixed;inset:0;z-index:90000;background:#111;overflow:hidden;
+  pointer-events:none;user-select:none}
+#finaleLayer{overscroll-behavior:none;touch-action:none}
+#finaleLayer .mirror{position:absolute;top:0;left:0;width:100%;height:100%;
+  overflow:hidden !important;overscroll-behavior:none !important;touch-action:none !important;
+  padding:22px 16px;box-sizing:border-box;
+  background:#111;opacity:0;transition:opacity .5s linear}
+#finaleLayer .mirror.show{opacity:1}
+#finaleLayer .mirror .card{display:block !important;opacity:1 !important;
+  visibility:visible !important;filter:none !important}
+#finaleLayer .mirror *{pointer-events:none !important;cursor:default !important}
+/* 已通关后再打开：整站不呈现，只留一句话 */
+#doneBox{position:fixed;inset:0;z-index:99999;background:#000;
+  display:flex;align-items:center;justify-content:center}
+#doneBox .dw{writing-mode:vertical-rl;font-family:"SimSun",serif;
+  font-size:min(6.6vw,42px);line-height:1.9;color:#7a1c1c;letter-spacing:.18em;
+  opacity:0;animation:fwIn 2.6s ease .5s forwards}
 </style>
 </head>
 <body>
@@ -343,10 +381,10 @@ body.tainted #sb{background:#ecdad7;color:#6a2020}
       </div>
       <div id="list"></div>
       <div class="rec locked" style="margin-top:10px">
-        <div class="rid">───── 以下 4 条已加密 ─────</div>
-        <div class="rmt">回收站需要 4 位访问码。<span id="accRule">三位注销者的学号，就是他们查分的日期。最后消失的那一位，日期就是访问码。</span></div>
+        <div class="rmt" id="accHint" style="display:none;color:#8a4a4a;font-weight:700">↓ 档案 13 已解开，读完它，访问码就在里面。再往下才是输入框。</div>
+      <div class="rmt">回收站需要 4 位访问码。<span id="accRule">三位注销者的学号，就是他们查分的日期。最后消失的那一位，日期就是访问码。</span></div>
       </div>
-      <div class="acc">
+      <div class="acc" id="accBox" style="display:none">
         <input class="in" id="acc" maxlength="4" placeholder="····" onkeydown="if(event.key==='Enter')unlock()">
         <button class="btn pri" onclick="unlock()">打 开 回 收 站</button>
         <button class="btn" onclick="talk('忘记访问码？','系统不提供找回。\n但规则不难：\n学号不是学号，是某一天。\n系统只在那天开过门。\n\n—— 教务处信息组留（该同事已注销）')">?</button>
@@ -364,7 +402,7 @@ body.tainted #sb{background:#ecdad7;color:#6a2020}
   <section class="card" id="c3">
     <div class="top">
       <div class="school">回收站 / 只读</div>
-      <div class="nav"><a href="javascript:;" onclick="go('c2')">← 返回档案列表</a></div>
+      <div class="nav"><a href="javascript:;" onclick="go('c2')">← 返回档案列表</a>　<a href="javascript:;" onclick="go('c1')">返回成绩查询</a></div>
     </div>
     <div class="hd">
       <h1>回 收 站</h1>
@@ -410,8 +448,10 @@ body.tainted #sb{background:#ecdad7;color:#6a2020}
           第 13 号把那一次用掉了。你的那一次还在。<br>
           <span style="color:var(--graytxt)">—— 但提交复核，得先承认这个分数是你的。</span>
         </div>
+        <div id="revBtns">
         <button class="btn pri" onclick="commit()">提 交 复 核 申 请</button>
         <button class="btn" onclick="decline()">这个分数不是我的</button>
+        </div>
         <div class="tip">回收站内不支持刷新。刷新即视为放弃本次复核，次数不返还。</div>
       </div>
     </div>
@@ -638,6 +678,8 @@ async function query(){
     /* 🅱 第一次和所有人一样是 0 分。玩家以为又是故障——但钥匙在这一步已经发出去了 */
     $("whoami").textContent = R13;
     $("tail").textContent = "20240309";
+    $("accBox").style.display="";
+    $("accHint").style.display="block";
     $("h1").style.display="block";
     $("h1").innerHTML = '方琦　初二(18)班　考号 20240309<br>'
       + '<table class="score" style="margin-top:6px"><tr><th>语文</th><th>数学</th><th>英语</th><th>物理</th><th>总分</th><th>班名</th></tr>'
@@ -680,6 +722,8 @@ async function peek(who){
       + '<tr><td>61</td><td>38</td><td>44</td><td>21</td><td style="color:var(--red);font-weight:700">164</td><td>41/41</td></tr></table>'
       + '<span style="color:var(--graytxt)">归档副本（只读）。原件位置：档案室 → 系统回收站。</span>';
     sb("原卷已调阅。档案室 ZERO-13 已解锁。");
+    window.__PEEKED__ = 1;
+    try{ $("accHint").style.display="block"; rebuild(); }catch(e){}
     return;
   }
   sb("正在调取答题卡扫描件 … 1 / 1 页");
@@ -701,9 +745,9 @@ const BASE = [
   ["04","2023-03-22","（姓名已不可读）","最后操作：把查分链接发给了 3 个人。3 个人都打开了。",1,""],
   ["05","2023-05-30","（姓名已不可读）","复核额度：1 次 → 未使用 → 随账号一并回收。",1,""],
   ["06","2023-07-11","（姓名已不可读）","留过一句留言，转码失败。只看得清四个字：「别自己查」",1,""],
-  ["07","2023-04-17","沈梦玮","考号 20230417　班名 18/41　总分 363　他把查分截图删了 7 次。第 8 次没删成，系统替他存着。<br><b style='color:#8a4a4a'>最后操作：用自己的额度，替同班一个姓方的人查了一次分。</b>",0,"已读取"],
+  ["07","2023-04-17","沈梦玮","考号 20230417　班名 18/41　总分 363　他把查分截图删了 7 次。第 8 次没删成，系统替他存着。<br><b style='color:#8a4a4a'>最后操作：用自己的额度，替同班一个姓方的人查了一次分。<br>关联信息：ZERO-13 姓名首字：<b style='color:#a05a5a'>方</b></b>",0,"已读取"],
   ["08","2023-10-15","（复核申请人 · 姓名已抹除）","考号 20231015　提交复核 1 次 → 不予变更 → 00:03:58 后注销。<b style='color:#8a4a4a'>第一个走完整套流程的人。</b>",0,"不予变更"],
-  ["09","2023-08-21","方蒋淇","考号 20230821　班名 18/41　总分 364　备注：与档案 13 同姓，非亲属。他查完自己的，又替别人查了一次。",0,"已读取"]
+  ["09","2023-08-21","方蒋淇","考号 20230821　班名 18/41　总分 364　备注：与档案 13 同姓，非亲属。他查完自己的，又替同班的一个人查了一次分。<br><b style='color:#8a4a4a'>最后操作：查询 ZERO-13 档案。<br>操作备注：「<b style='color:#a05a5a'>方琦</b>，<b style='color:#a05a5a'>初二18班</b>，你还好吗。」<br><span style='color:#8a4a4a'>（他的学号 20230821，就是他查分那天。学号＝查分日期。）</span></b>",0,"已读取"]
 ];
 const HIDDEN = [
   ["10","2023-12-06","（姓名已不可读）","考号 20231206　无查询记录。账号在被人使用前就已注销。",1,""],
@@ -718,8 +762,12 @@ function card(a){
     + '<div class="rnm">'+nm+'</div>'
     + '<div class="rmt">'+mt+'</div></div>';
 }
+function whoamiOk(){ const w=$("whoami"); return w && w.textContent && w.textContent!=="（未填写）"; }
+function peekedOk(){ return !!window.__PEEKED__; }
 function rebuild(){
   let h = BASE.map(card).join("");
+  /* Bug1 修复：分隔线随列表一起渲染，永远压在 10~13 这 4 条加密档案「上方」，不再错位到 13 下面 */
+  h += '<div class="rec locked"><div class="rid">───── 以下 4 条已加密 ─────</div></div>';
   if(tainted){
     h += HIDDEN.map(card).join("");
     h += card(["13","2024-03-09 21:47:02",R13,
@@ -741,6 +789,26 @@ function rebuild(){
   if(SIGNED_OUT_NAME){ /* 右键后果：姓名栏被改写 */ }
   $("pg").style.width = (tainted?100:69) + "%";
   sb(tainted ? "已加载 13 / 13 条。" : "已加载 9 / 13 条。等待确认公告 …");
+  /* ★ 永不下线的路标：随进度变化，卡住的人总能摸到下一步 */
+  try{
+    const hint = $("accHint");
+    if(hint){
+      let t = "";
+      if(tainted){
+        t = "· 该入口已关闭。右下角那个「返回」还在，只是不再通向上一页了。";
+      } else if(!whoamiOk()){
+        t = "↓ 先回首页查一次方琦（初二(18)班），这一格才会亮。";
+      } else if(!peekedOk()){
+        t = "↓ 点成绩单上那个「调阅原卷」，档案 13 才解得出。";
+      } else {
+        t = "↓ 档案 13 已解开，读完 07 和 09，访问码就藏在学号里（学号＝查分日期）。";
+      }
+      if(tries>0 && tries<4 && !tainted){
+        t += "<br><span style='color:#8a4a4a'>· 第 "+tries+" / 4 次。档案 11 停在第 2 次，档案 12 停在第 4 次。</span>";
+      }
+      hint.innerHTML = t;
+    }
+  }catch(e){}
 }
 /* ============ ② 持久化：关掉重开，他还在 ============ */
 const LS = "FANG218_TAINT"; const LSV = "FANG218_V";
@@ -835,7 +903,88 @@ async function wipe(){
     go("c1");
     sb(SIGNED_OUT ? "已复位，并已代你提交注销申请。档案 14 姓名栏：主动申请注销。本地 0 字节，系统那一份 1 字节。"
                   : "已复位。本地记录 0 字节。 —— 但档案 14 还写着「正在阅读本页」。");
+    if(SIGNED_OUT) setTimeout(async ()=>{
+      await talk("档案 14 已归档。",
+        "姓名栏：主动申请注销。\n日期：今天。\n\n—— 你通关了。这是整份记录里唯一的“完成”——\n它不长这样，它长这样。", "lock");
+      try{ await finale(); }catch(e){}
+    }, 1200);
   },900);
+}
+
+/* ============ 结局自毁：克隆三份不可操控镜像（回收站→档案→查询），逐页逐字消失 → 竖排「再见」 ============ */
+async function finale(){
+  const sleep = ms => new Promise(r=>setTimeout(r,ms));
+  try{ sb("正在删除本地页面 … 已释放 0 字节 … "); }catch(e){}
+
+  /* 1. 建一个覆盖全屏的镜像层，克隆真实的三页作“不可操控的相同界面” */
+  const layer = document.createElement('div'); layer.id='finaleLayer';
+  const srcIds = ['c3','c2','c1'];                        // 回收站 → 档案室 → 查询页
+  const mirrors = [];
+  srcIds.forEach((id,idx)=>{
+    const src = document.getElementById(id); if(!src) return;
+    const m = document.createElement('div'); m.className='mirror';
+    m.dataset.page = id;
+    const cl = src.cloneNode(true);                       // 深度克隆：长得一模一样
+    cl.removeAttribute('id');
+    cl.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));  // 防重复 id
+    cl.querySelectorAll('audio,video').forEach(n=>{ try{ n.pause(); n.removeAttribute('autoplay'); }catch(e){} });
+    cl.querySelectorAll('input,textarea,button,a').forEach(n=>{
+      n.setAttribute('tabindex','-1'); if(n.blur) n.blur(); });
+    m.appendChild(cl);
+    layer.appendChild(m); mirrors.push(m);
+  });
+  document.body.appendChild(layer);
+  const prevOverflow = document.body.style.overflow;
+  document.body.style.overflow = 'hidden';               // 结局期间底页不许滚
+  const blockScroll = e=>{ e.preventDefault(); e.stopPropagation(); return false; };
+  layer.addEventListener('touchmove', blockScroll, {passive:false});
+  layer.addEventListener('scroll', blockScroll, true);
+  await sleep(60);
+
+  /* 把某个镜像里的文字拆成逐字 span（从末字往回删） */
+  const textNodes = root => {
+    const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: n => (n.nodeValue && n.nodeValue.trim().length) ? 1 : 3 });
+    const out=[]; while(tw.nextNode()) out.push(tw.currentNode); return out;
+  };
+  const charSpans = mirror => {
+    const spans=[];
+    textNodes(mirror).reverse().forEach(tn=>{
+      const txt=tn.nodeValue, parent=tn.parentNode; if(!parent) return;
+      const frag=document.createDocumentFragment(), cs=[];
+      for(let i=0;i<txt.length;i++){ const s=document.createElement('span'); s.className='finch'; s.textContent=txt[i]; frag.appendChild(s); cs.push(s); }
+      parent.replaceChild(frag, tn);
+      cs.reverse().forEach(s=>spans.push(s));            // 同一行也从末字起
+    });
+    return spans;
+  };
+
+  const speed = 16;                                       // 每字间隔，越小越快，可自行调
+  for(let i=0;i<mirrors.length;i++){
+    const m = mirrors[i];
+    m.classList.add('show');                             // 显现这一页镜像（不可点击）
+    await sleep(650);                                    // 停一下，让人看清是哪一页
+    const spans = charSpans(m);                          // 逐字抹除
+    for(const s of spans){ if(s.dataset.gone) continue; s.dataset.gone='1';
+      s.classList.add('gone'); await sleep(speed); }
+    await sleep(200);
+    m.classList.remove('show');                          // 这一页整块淡掉，进入下一页
+    await sleep(450);
+  }
+
+  /* 2. 三页都删完：镜像层也隐去，整站转黑 */
+  layer.style.transition='opacity .5s'; layer.style.opacity='0';
+  await sleep(500);
+  try{ layer.remove(); }catch(e){}
+  document.body.style.overflow = prevOverflow || '';
+  const ov=$("ov"); if(ov) ov.remove();
+  document.body.classList.add('finale');
+  document.title='—';
+  try{ localStorage.setItem("FANG218_DONE", now()); }catch(e){}   // 永久标记：以后再开“一切已定”
+  await sleep(300);
+  const box=document.createElement('div'); box.id='finaleBox';
+  box.innerHTML='<span class="fw a">再</span><span class="fw b">见</span>';
+  document.body.appendChild(box);
 }
 ["verBtn","verBtn2"].forEach(id=>{
   const el=$(id); if(el) el.addEventListener("click",pokeVersion);
@@ -843,6 +992,20 @@ async function wipe(){
 
 
 rebuild();
+
+/* ============ 已通关门：一旦打出过「再见」，以后每次打开都只剩一句话 ============ */
+(function doneGate(){
+  let done=false; try{ done = !!localStorage.getItem("FANG218_DONE"); }catch(e){}
+  if(!done) return;
+  window.__BOOTED__ = 1;
+  window.__DONE__ = 1;
+  document.body.classList.add('finale');
+  document.title='—';
+  try{ sessionStorage.setItem("FANG218_BOOT","1"); }catch(e){}
+  const box=document.createElement('div'); box.id='doneBox';
+  box.innerHTML='<span class="dw">你又来了，不过一切已定。</span>';
+  document.body.appendChild(box);
+})();
 
 /* ============ 开机序列：打开就弹，三屏全必须点「确 定」 ============
    老 IE 内网的脾气——公告不点掉不给用。这三屏不是写给玩家的说明书，
@@ -895,14 +1058,27 @@ if(!tainted) bootSeq();
 
 /* ============ 回收站 ============ */
 function unlock(){
-  if(tainted){ $("h2").style.display="block"; $("h2").innerHTML='<span class="r">· 该入口已失效。返回键还在，仅此而已。</span>'; return; }
   const v = $("acc").value.replace(/\D/g,"");
+  /* V6.1 修正：访问码以 0 开头，手机端极易漏掉前导 0 输成 309，故 0309 / 309 均认 */
+  const codeOk = (v === "0309" || v === "309");
+  /* Bug3 修复：判空/失效拦截只作用于「非正确码」；
+     只要输的是正确访问码 0309，就无条件放行到复核，不再被 whoami 判空或 tainted 提前 return 掉 */
+  if(!codeOk){
+    if($("whoami").textContent==="（未填写）"){ $("h2").style.display="block"; $("h2").innerHTML='<span class="r">· 访问码校验需要一份「本人查分记录」做比对。你还没查过任何人的分数。</span><br>回到首页，先查一次方琦（初二(18)班）。查完这一格自己会亮。'; $("acc").value=""; return; }
+    if(tainted){ $("h2").style.display="block"; $("h2").innerHTML='<span class="r">· 该入口已失效。返回键还在，仅此而已。</span>'; return; }
+  }
   tries++;
   saveState();   // ← 关键：错码次数必须跨刷新活着，否则刷新就洗白
   sb("校验访问码 … 第 "+tries+" 次");
-  if(v === "0309"){
+  if(codeOk){
     $("h2").style.display="none";
+    $("accBox").style.display="none";
+    /* Bug4 修复：输入框在档案室(c2)、复核按钮在回收站(c3)，判码成功后必须跳到 c3，
+       否则按钮虽已亮出却藏在隐藏屏里，用户永远看不到 → 表现为“输对密码也没反应/第1/4次” */
+    go("c3");
+    /* ★ 复核区块立刻无条件亮出：不等打字机，保证复核双按钮一定出现 */
     $("r3").style.display="block";
+    if($("revBtns")) $("revBtns").style.display="block";
     $("tdy").textContent = now().slice(0,16);
     $("sid14").textContent = today().replace(/-/g,'');
     /* 没查过分就直接撬回收站：档案 14 的姓名栏还空着，但空着本身就是答案 */
@@ -916,19 +1092,25 @@ function unlock(){
     } else {
       $("me14").textContent = me();
     }
+    sb("回收站已解封。写入动作已完成，不可撤销。");
+    /* 打字机：纯粹装饰。无论它是否被点掉/顶后台，复核按钮上面已经亮着了 */
+    try{ $("tty").textContent=""; }catch(e){}
     (async()=>{
-      await say($("tty"),
-        "> 访问码 0309 接受。\n"
-      + "> 正在解封 档案 13 …\n"
-      + "> 已解封。1 项可读，2 项只读。\n"
-      + "> 顺带一提：这次解封动作，已经写进 档案 14。\n"
-      + "> 档案 14 的姓名栏，填的是你刚才输入的那个名字。\n"
-      + "> ……\n"
-      + "> 你还要继续往下看吗？（本提示不接受「否）\n",22);
-      $("tty").classList.remove("cur");
+      try{
+        await say($("tty"),
+          "> 访问码 0309 接受。\n"
+        + "> 正在解封 档案 13 …\n"
+        + "> 已解封。1 项可读，2 项只读。\n"
+        + "> 顺带一提：这次解封动作，已经写进 档案 14。\n"
+        + "> 档案 14 的姓名栏，填的是你刚才输入的那个名字。\n"
+        + "> ……\n"
+        + "> 你还要继续往下看吗？（本提示不接受「否）\n",22);
+        $("tty").classList.remove("cur");
+      }catch(e){}
+      /* 兜底：再确认一次复核按钮可见，防止任何时序把它顶掉 */
       $("r3").style.display="block";
+      if($("revBtns")) $("revBtns").style.display="block";
       rebuild();
-      sb("回收站已解封。写入动作已完成，不可撤销。");
     })();
   } else if(tries >= 4){
     $("h2").style.display="block";
@@ -972,6 +1154,16 @@ async function commit(){
     document.body.style.transition="filter 2.2s";
     document.body.style.filter="blur(2.5px) brightness(.72)";
     sb("办结。你已被列入 41/41。页面即将转为只读。");
+    // ★通关收尾标记：不弹窗、不庆祝，只把「结束」钉死，免得被误判成卡住
+    setTimeout(()=>{
+      let t=$("endMark");
+      if(!t){ t=document.createElement("div"); t.id="endMark";
+        t.style.cssText="margin:26px auto 4px;text-align:center;color:#6a3a3a;font:12px/1.8 monospace;letter-spacing:2px;opacity:.0;transition:opacity 2s;";
+        const c4=$("c4"); if(c4) c4.appendChild(t);
+      }
+      t.innerHTML="— 记录 14 已归档 · 体验到此结束 —<br>回首页查 沈梦玮，或连点页脚版本号 5 次，可继续 / 复位。";
+      requestAnimationFrame(()=>{ t.style.opacity=".85"; });
+    }, 2200);
   },1500);
 }
 async function decline(){
